@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\BaseRequest;
 
-class VerifyResetCodeRequest extends FormRequest
+class VerifyResetCodeRequest extends BaseRequest
 {
     public function authorize(): bool
     {
@@ -30,16 +28,5 @@ class VerifyResetCodeRequest extends FormRequest
             'token.required' => 'Reset code is required',
             'token.size' => 'Reset code must be 4 digits',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422)
-        );
     }
 }

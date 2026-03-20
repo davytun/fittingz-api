@@ -12,8 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('clients', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('email')->nullable();
+            $table->string('phone')->nullable();
+            $table->enum('gender', ['Male', 'Female', 'Other']);
             $table->timestamps();
+            
+            $table->index('user_id');
+            $table->index('name');
+            $table->unique(['user_id', 'email']);
+            $table->unique(['user_id', 'phone']);
         });
     }
 

@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Http\Requests\BaseRequest;
 
-class RegisterRequest extends FormRequest
+class RegisterRequest extends BaseRequest
 {
     public function authorize(): bool
     {
@@ -23,7 +21,8 @@ class RegisterRequest extends FormRequest
             'business_address' => ['required', 'string', 'min:5', 'max:500'],
         ];
     }
- public function messages(): array
+
+    public function messages(): array
     {
         return [
             'email.required' => 'Email address is required',
@@ -40,16 +39,5 @@ class RegisterRequest extends FormRequest
             'business_address.required' => 'Business address is required',
             'business_address.min' => 'Business address must be at least 5 characters',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422)
-        );
     }
 }

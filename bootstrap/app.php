@@ -1,9 +1,12 @@
 <?php
 
+use App\Exceptions\Handler;
 use App\Http\Middleware\CheckTokenExpiration;
+use App\Http\Middleware\EnsureClientBelongsToUser;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,8 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'token.expiration' => CheckTokenExpiration::class,
+            'client.owner' => EnsureClientBelongsToUser::class,
         ]);
-        })
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return (new Handler(app()))->handleApiException($e, $request);
+            }
+        });
     })->create();

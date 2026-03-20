@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
@@ -40,21 +41,16 @@ class AuthController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Registration successful. Please check your email to verify your account.',
-                'data' => [
-                    'user' => new UserResource($user),
-                ],
-            ], 201);
+            return ApiResponse::success(
+                'Registration successful. Please check your email to verify your account.',
+                ['user' => new UserResource($user)],
+                201
+            );
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Registration failed. Please try again.',
-            ], 500);
+            return ApiResponse::error('Registration failed. Please try again.', null, 500);
         }
     }
 
@@ -66,10 +62,11 @@ class AuthController extends Controller
         if ($user && $user->isLocked()) {
             $remainingMinutes = now()->diffInMinutes($user->locked_until);
 
-            return response()->json([
-                'status' => 'error',
-                'message' => "Account is locked due to multiple failed login attempts. Try again in {$remainingMinutes} minutes.",
-            ], 423);
+            return ApiResponse::error(
+                "Account is locked due to multiple failed login attempts. Try again in {$remainingMinutes} minutes.",
+                null,
+                423
+            );
         }
 
         $credentials = [
@@ -82,24 +79,23 @@ class AuthController extends Controller
                 $user->incrementFailedAttempts();
 
                 if ($user->isLocked()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Account locked due to multiple failed login attempts. Try again in 30 minutes.',
-                    ], 423);
+                    return ApiResponse::error(
+                        'Account locked due to multiple failed login attempts. Try again in 30 minutes.',
+                        null,
+                        423
+                    );
                 }
 
                 $remainingAttempts = 5 - $user->failed_login_attempts;
 
-                return response()->json([
-                    'status' => 'error',
-                    'message' => "Invalid credentials. {$remainingAttempts} attempts remaining before account lockout.",
-                ], 401);
+                return ApiResponse::error(
+                    "Invalid credentials. {$remainingAttempts} attempts remaining before account lockout.",
+                    null,
+                    401
+                );
             }
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid credentials',
-            ], 401);
+            return ApiResponse::error('Invalid credentials', null, 401);
         }
 
         $user = Auth::user();
@@ -107,10 +103,7 @@ class AuthController extends Controller
         if (! $user->hasVerifiedEmail()) {
             Auth::logout();
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Please verify your email before logging in.',
-            ], 403);
+            return ApiResponse::error('Please verify your email before logging in.', null, 403);
         }
 
         $user->resetFailedAttempts();
@@ -118,18 +111,17 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Login successful',
-            'data' => [
+        return ApiResponse::success(
+            'Login successful',
+            [
                 'user' => new UserResource($user),
                 'token' => $token,
                 'expires_in' => [
                     'minutes' => 10080,
                     'days' => 7,
                 ],
-            ],
-        ], 200);
+            ]
+        );
     }
 
     public function logout(Request $request): JsonResponse
@@ -138,10 +130,7 @@ class AuthController extends Controller
         $token = $request->user()->currentAccessToken();
         $token->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Logged out successfully',
-        ], 200);
+        return ApiResponse::success('Logged out successfully');
     }
 
     public function refresh(Request $request): JsonResponse
@@ -151,17 +140,16 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Token refreshed successfully',
-            'data' => [
+        return ApiResponse::success(
+            'Token refreshed successfully',
+            [
                 'token' => $token,
                 'expires_in' => [
                     'minutes' => 10080,
                     'days' => 7,
                 ],
-            ],
-        ], 200);
+            ]
+        );
     }
 
     public function verifyEmail(Request $request): JsonResponse
@@ -169,25 +157,16 @@ class AuthController extends Controller
         $user = User::findOrFail($request->route('id'));
 
         if (! hash_equals(sha1($user->getEmailForVerification()), (string) $request->route('hash'))) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid verification link',
-            ], 400);
+            return ApiResponse::error('Invalid verification link', null, 400);
         }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Email already verified',
-            ], 200);
+            return ApiResponse::success('Email already verified');
         }
 
         $user->markEmailAsVerified();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Email verified successfully. You can now log in.',
-        ], 200);
+        return ApiResponse::success('Email verified successfully. You can now log in.');
     }
 
     public function resendVerification(ResendVerificationRequest $request): JsonResponse
@@ -195,18 +174,12 @@ class AuthController extends Controller
         $user = User::where('email', strtolower(trim($request->email)))->first();
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Email already verified',
-            ], 400);
+            return ApiResponse::error('Email already verified', null, 400);
         }
 
         $user->notify(new VerifyEmailNotification);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Verification email sent',
-        ], 200);
+        return ApiResponse::success('Verification email sent');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
@@ -226,10 +199,7 @@ class AuthController extends Controller
 
         $user->notify(new PasswordResetNotification($token));
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Password reset code sent to your email',
-        ], 200);
+        return ApiResponse::success('Password reset code sent to your email');
     }
 
     public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
@@ -242,32 +212,20 @@ class AuthController extends Controller
             ->first();
 
         if (! $resetRecord) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid reset code',
-            ], 400);
+            return ApiResponse::error('Invalid reset code', null, 400);
         }
 
         if (! Hash::check($token, $resetRecord->token)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid reset code',
-            ], 400);
+            return ApiResponse::error('Invalid reset code', null, 400);
         }
 
         if (now()->diffInMinutes($resetRecord->created_at) > 60) {
             DB::table('password_reset_tokens')->where('email', $email)->delete();
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Reset code has expired. Please request a new one.',
-            ], 400);
+            return ApiResponse::error('Reset code has expired. Please request a new one.', null, 400);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Reset code verified successfully',
-        ], 200);
+        return ApiResponse::success('Reset code verified successfully');
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
@@ -280,26 +238,17 @@ class AuthController extends Controller
             ->first();
 
         if (! $resetRecord) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid reset code',
-            ], 400);
+            return ApiResponse::error('Invalid reset code', null, 400);
         }
 
         if (! Hash::check($token, $resetRecord->token)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Invalid reset code',
-            ], 400);
+            return ApiResponse::error('Invalid reset code', null, 400);
         }
 
         if (now()->diffInMinutes($resetRecord->created_at) > 60) {
             DB::table('password_reset_tokens')->where('email', $email)->delete();
 
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Reset code has expired. Please request a new one.',
-            ], 400);
+            return ApiResponse::error('Reset code has expired. Please request a new one.', null, 400);
         }
 
         $user = User::where('email', $email)->first();
@@ -310,10 +259,7 @@ class AuthController extends Controller
         DB::table('password_reset_tokens')->where('email', $email)->delete();
         $user->tokens()->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Password reset successfully. Please login with your new password.',
-        ], 200);
+        return ApiResponse::success('Password reset successfully. Please login with your new password.');
     }
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
@@ -321,10 +267,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (! Hash::check($request->current_password, $user->password)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Current password is incorrect',
-            ], 400);
+            return ApiResponse::error('Current password is incorrect', null, 400);
         }
 
         $user->update([
@@ -334,12 +277,11 @@ class AuthController extends Controller
         $user->tokens()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Password changed successfully',
-            'data' => [
+        return ApiResponse::success(
+            'Password changed successfully',
+            [
                 'token' => $token,
-            ],
-        ], 200);
+            ]
+        );
     }
 }
