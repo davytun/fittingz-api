@@ -20,6 +20,11 @@ class ApiResponse
             $response['data'] = $data;
         }
 
+        // Add version in non-production or if explicitly requested
+        if (config('app.env') !== 'production' || request()->has('include_version')) {
+            $response['version'] = config('app.version');
+        }
+
         return response()->json($response, $statusCode);
     }
 

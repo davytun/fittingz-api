@@ -20,8 +20,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 
+/**
+ * @group Authentication
+ */
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
@@ -60,6 +64,11 @@ class AuthController extends Controller
         $user = User::where('email', $email)->first();
 
         if ($user && $user->isLocked()) {
+            Log::channel('security')->warning('Login attempt on locked account', [
+                'email' => $email,
+                'ip' => $request->ip(),
+            ]);
+
             $remainingMinutes = now()->diffInMinutes($user->locked_until);
 
             return ApiResponse::error(
@@ -76,9 +85,20 @@ class AuthController extends Controller
 
         if (! Auth::attempt($credentials)) {
             if ($user) {
+                Log::channel('security')->warning('Failed login attempt', [
+                    'email' => $email,
+                    'ip' => $request->ip(),
+                    'attempts' => $user->failed_login_attempts + 1,
+                ]);
+
                 $user->incrementFailedAttempts();
 
                 if ($user->isLocked()) {
+                    Log::channel('security')->alert('Account locked due to multiple failed attempts', [
+                        'email' => $email,
+                        'ip' => $request->ip(),
+                    ]);
+
                     return ApiResponse::error(
                         'Account locked due to multiple failed login attempts. Try again in 30 minutes.',
                         null,
@@ -95,6 +115,11 @@ class AuthController extends Controller
                 );
             }
 
+            Log::channel('security')->info('Failed login attempt - user not found', [
+                'email' => $email,
+                'ip' => $request->ip(),
+            ]);
+
             return ApiResponse::error('Invalid credentials', null, 401);
         }
 
@@ -106,6 +131,12 @@ class AuthController extends Controller
             return ApiResponse::error('Please verify your email before logging in.', null, 403);
         }
 
+        Log::channel('api')->info('User logged in', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip' => $request->ip(),
+        ]);
+
         $user->resetFailedAttempts();
         $user->tokens()->delete();
 
@@ -116,6 +147,7 @@ class AuthController extends Controller
             [
                 'user' => new UserResource($user),
                 'token' => $token,
+                'token_type' => 'Bearer',
                 'expires_in' => [
                     'minutes' => 10080,
                     'days' => 7,

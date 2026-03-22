@@ -10,10 +10,14 @@ use App\Http\Controllers\Api\V1\StyleController;
 use App\Http\Controllers\Api\V1\OrderStyleController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\CronController;
+use App\Http\Controllers\HealthCheckController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/cron/{secret}/queue', [CronController::class, 'processQueue'])
     ->where('secret', '[a-zA-Z0-9]+');
+
+Route::get('/health', [HealthCheckController::class, 'check']);
+
 
 // AUTH ROUTES
 Route::prefix('v1/auth')->group(function () {
@@ -40,7 +44,7 @@ Route::prefix('v1/auth')->group(function () {
 });
 
 // PROTECTED ROUTES
-Route::prefix('v1')->middleware(['auth:sanctum', 'token.expiration'])->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum', 'token.expiration', 'throttle:api', 'log.api'])->group(function () {
 
     // CLIENTS
     Route::apiResource('clients', ClientController::class);

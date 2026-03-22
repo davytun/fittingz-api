@@ -11,6 +11,9 @@ use App\Models\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Measurements
+ */
 class MeasurementController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -72,7 +75,13 @@ class MeasurementController extends Controller
 
     public function show(Request $request, string $id): JsonResponse
     {
-        $measurement = $request->user()->measurements()->findOrFail($id);
+        $measurement = $request->user()->measurements()
+            ->with('client:id,name') // Only load needed columns
+            ->findOrFail($id);
+
+        if ($measurement->user_id !== $request->user()->id) {
+            return ApiResponse::error('Measurement not found', null, 404);
+        }
 
         return ApiResponse::success(
             'Measurement retrieved successfully',

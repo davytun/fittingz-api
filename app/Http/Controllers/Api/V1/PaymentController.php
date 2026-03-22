@@ -11,6 +11,9 @@ use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * @group Payments
+ */
 class PaymentController extends Controller
 {
     protected PaymentService $paymentService;

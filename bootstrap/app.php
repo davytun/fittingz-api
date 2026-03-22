@@ -3,6 +3,8 @@
 use App\Exceptions\Handler;
 use App\Http\Middleware\CheckTokenExpiration;
 use App\Http\Middleware\EnsureClientBelongsToUser;
+use App\Http\Middleware\LogApiRequests;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,7 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'token.expiration' => CheckTokenExpiration::class,
             'client.owner' => EnsureClientBelongsToUser::class,
+            'log.api' => LogApiRequests::class,
         ]);
+
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {

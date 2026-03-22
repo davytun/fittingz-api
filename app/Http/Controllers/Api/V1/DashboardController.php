@@ -9,6 +9,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @group Dashboard
+ */
 class DashboardController extends Controller
 {
     public function stats(Request $request): JsonResponse

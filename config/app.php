@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Fittingz'),
 
+    'version' => env('APP_VERSION', '1.0.0'),
+
+    'admin_email' => env('ADMIN_EMAIL', 'admin@fittingz.app'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

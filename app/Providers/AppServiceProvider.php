@@ -32,5 +32,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('password-reset-email', function ($request) {
             return Limit::perHour(5)->by($request->input('email'));
         });
+
+        // API rate limiting per user
+        RateLimiter::for('api', function ($request) {
+            return $request->user()
+                ? Limit::perMinute(60)->by($request->user()->id)
+                : Limit::perMinute(10)->by($request->ip());
+        });
     }
 }
