@@ -8,9 +8,13 @@ use OpenApi\Attributes as OA;
     title: "Fittingz API Documentation",
     version: "1.0.0",
     description: "REST API for fashion designers and tailoring businesses to manage clients, measurements, orders, and payments.\n\nAll endpoints require a Bearer token received from the `/api/v1/auth/login` endpoint (except authentication routes).",
-    contact: new OA\Contact(email: "support@fittingz.com")
+    contact: new OA\Contact(
+        name: "Fittingz Developer Support",
+        url: "http://localhost:8000",
+        email: "support@fittingz.com"
+    )
 )]
-#[OA\Server(url: "/", description: "API Server")]
+#[OA\Server(url: "http://localhost:8000", description: "Local API Server")]
 #[OA\SecurityScheme(
     securityScheme: "bearerAuth",
     type: "http",
