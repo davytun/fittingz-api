@@ -19,6 +19,9 @@ Route::get('/health', [App\Http\Controllers\HealthCheckController::class, 'check
 Route::get('/cron/{secret}/queue', [CronController::class, 'processQueue'])
     ->where('secret', '[a-zA-Z0-9]+');
 
+Route::get('/cron/{secret}/run/{command}', [CronController::class, 'runCommand'])
+    ->where('secret', '[a-zA-Z0-9]+');
+
 // API
 Route::prefix('v1')->group(function () {
     
