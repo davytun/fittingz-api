@@ -33,7 +33,7 @@ class PaymentDocs
             ])),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Client or order not found")
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function index() {}
@@ -64,7 +64,7 @@ class PaymentDocs
             new OA\Response(response: 201, description: "Payment recorded successfully"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Client or order not found"),
+            new OA\Response(response: 404, description: "Client, order, or payment not found"),
             new OA\Response(response: 422, description: "Validation error — including amount exceeding outstanding balance")
         ]
     )]
@@ -84,7 +84,7 @@ class PaymentDocs
             new OA\Response(response: 200, description: "Payment retrieved successfully"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Payment not found")
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function show() {}
@@ -103,7 +103,7 @@ class PaymentDocs
             new OA\Response(response: 200, description: "Payment deleted successfully"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Payment not found")
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function destroy() {}

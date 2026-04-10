@@ -117,8 +117,7 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Verification code sent (or generic success if email not found, to prevent enumeration)"),
-            new OA\Response(response: 400, description: "Email already verified"),
+            new OA\Response(response: 200, description: "Verification code sent (or generic success if email not found or already verified, to prevent enumeration)"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
