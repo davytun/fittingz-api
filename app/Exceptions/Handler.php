@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Validation\ValidationException;
@@ -15,6 +16,11 @@ use Throwable;
 
 class Handler extends ExceptionHandler
 {
+    protected function isApiRequest($request): bool
+    {
+        return $request->is('api/*') || $request->expectsJson();
+    }
+
     /**
      * A list of exception types with their corresponding custom log levels.
      *
@@ -59,7 +65,7 @@ class Handler extends ExceptionHandler
      */
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        return $request->expectsJson() || $request->is('api/*')
+        return $this->isApiRequest($request)
             ? ApiResponse::error('Unauthenticated. Please login to continue.', null, 401)
             : redirect()->guest(route('login'));
     }
@@ -86,6 +92,14 @@ class Handler extends ExceptionHandler
             );
         }
 
+        if ($exception instanceof AuthorizationException) {
+            return ApiResponse::error(
+                $exception->getMessage() ?: 'This action is unauthorized.',
+                null,
+                403
+            );
+        }
+
         // Model not found (e.g., Client::findOrFail())
         if ($exception instanceof ModelNotFoundException) {
             return ApiResponse::error(
@@ -97,6 +111,14 @@ class Handler extends ExceptionHandler
 
         // 404 - Route not found
         if ($exception instanceof NotFoundHttpException) {
+            if ($request->route() !== null) {
+                return ApiResponse::error(
+                    'Resource not found',
+                    null,
+                    404
+                );
+            }
+
             return ApiResponse::error(
                 'Endpoint not found',
                 null,

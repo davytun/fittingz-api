@@ -37,7 +37,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'business_address',
         'failed_login_attempts',
         'locked_until',
-
+        'verification_code',
+        'verification_code_expires_at',
     ];
 
     protected $hidden = [
@@ -48,10 +49,26 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'locked_until' => 'datetime',
+            'email_verified_at'             => 'datetime',
+            'password'                       => 'hashed',
+            'locked_until'                   => 'datetime',
+            'verification_code_expires_at'   => 'datetime',
         ];
+    }
+
+    /**
+     * Generate a 4-digit verification code, persist it, and return it.
+     */
+    public function generateVerificationCode(): string
+    {
+        $code = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
+        $this->update([
+            'verification_code'            => $code,
+            'verification_code_expires_at' => now()->addMinutes(15),
+        ]);
+
+        return $code;
     }
 
     public function isLocked(): bool

@@ -8,24 +8,19 @@ use App\Http\Requests\Measurement\StoreMeasurementRequest;
 use App\Http\Requests\Measurement\UpdateMeasurementRequest;
 use App\Http\Resources\MeasurementResource;
 use App\Models\Client;
+use App\Models\Measurement;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
-/**
- * @group Measurements
- */
-class MeasurementController extends Controller
+class ClientMeasurementController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Client $client): JsonResponse
     {
-        $query = $request->user()->measurements()->with('client');
+        $this->authorize('viewAny', [Measurement::class, $client]);
 
-        // Filter by client_id (required for flat structure)
-        if ($request->has('client_id')) {
-            $query->where('client_id', $request->client_id);
-        }
-
-        $measurements = $query->orderBy('measurement_date', 'desc')->get();
+        $measurements = $client->measurements()
+            ->with('client')
+            ->orderBy('measurement_date', 'desc')
+            ->get();
 
         return ApiResponse::success(
             'Measurements retrieved successfully',
@@ -33,10 +28,9 @@ class MeasurementController extends Controller
         );
     }
 
-    public function store(StoreMeasurementRequest $request): JsonResponse
+    public function store(StoreMeasurementRequest $request, Client $client): JsonResponse
     {
-        // Verify client belongs to user
-        $client = $request->user()->clients()->findOrFail($request->client_id);
+        $this->authorize('create', [Measurement::class, $client]);
 
         $measurement = $client->measurements()->create([
             'user_id' => $request->user()->id,
@@ -53,35 +47,11 @@ class MeasurementController extends Controller
         );
     }
 
-    public function latest(Request $request): JsonResponse
+    public function show(Client $client, Measurement $measurement): JsonResponse
     {
-        $query = $request->user()->measurements();
+        $this->authorize('view', $measurement);
 
-        if ($request->has('client_id')) {
-            $query->where('client_id', $request->client_id);
-        }
-
-        $measurement = $query->orderBy('measurement_date', 'desc')->first();
-
-        if (! $measurement) {
-            return ApiResponse::error('No measurements found', null, 404);
-        }
-
-        return ApiResponse::success(
-            'Latest measurement retrieved successfully',
-            new MeasurementResource($measurement)
-        );
-    }
-
-    public function show(Request $request, string $id): JsonResponse
-    {
-        $measurement = $request->user()->measurements()
-            ->with('client:id,name') // Only load needed columns
-            ->findOrFail($id);
-
-        if ($measurement->user_id !== $request->user()->id) {
-            return ApiResponse::error('Measurement not found', null, 404);
-        }
+        $measurement->load('client:id,name');
 
         return ApiResponse::success(
             'Measurement retrieved successfully',
@@ -89,29 +59,24 @@ class MeasurementController extends Controller
         );
     }
 
-    public function update(UpdateMeasurementRequest $request, string $id): JsonResponse
+    public function update(UpdateMeasurementRequest $request, Client $client, Measurement $measurement): JsonResponse
     {
-        $measurement = $request->user()->measurements()->findOrFail($id);
+        $this->authorize('update', $measurement);
 
         $updateData = $request->validated();
 
-        // PATCH logic: Merge measurements, don't replace
         if (isset($updateData['measurements'])) {
             $existingMeasurements = $measurement->measurements;
             $newMeasurements = $updateData['measurements'];
 
-            // Merge: add new fields, update existing fields, remove null fields
             foreach ($newMeasurements as $key => $value) {
                 if ($value === null) {
-                    // Remove field if value is null
                     unset($existingMeasurements[$key]);
                 } else {
-                    // Add or update field
                     $existingMeasurements[$key] = $value;
                 }
             }
 
-            // Ensure at least one measurement remains
             if (empty($existingMeasurements)) {
                 return ApiResponse::error(
                     'Cannot remove all measurements. At least one field is required.',
@@ -131,20 +96,19 @@ class MeasurementController extends Controller
         );
     }
 
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(Client $client, Measurement $measurement): JsonResponse
     {
-        $measurement = $request->user()->measurements()->findOrFail($id);
+        $this->authorize('delete', $measurement);
 
         $measurement->delete();
 
         return ApiResponse::success('Measurement deleted successfully');
     }
 
-    public function setDefault(Request $request, string $id): JsonResponse
+    public function setDefault(Client $client, Measurement $measurement): JsonResponse
     {
-        $measurement = $request->user()->measurements()->findOrFail($id);
+        $this->authorize('update', $measurement);
 
-        // Set as default (model event will handle unsetting others)
         $measurement->update(['is_default' => true]);
 
         return ApiResponse::success(

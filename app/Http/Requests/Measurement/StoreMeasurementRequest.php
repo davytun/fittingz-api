@@ -16,14 +16,7 @@ class StoreMeasurementRequest extends BaseRequest
 
     public function rules(): array
     {
-        $userId = $this->user()->id;
-
         return [
-            'client_id' => [
-                'required',
-                'uuid',
-                Rule::exists('clients', 'id')->where('user_id', $userId),
-            ],
             'measurements' => ['required', 'array', 'min:1', new ValidMeasurementKeys()],
             'measurements.*' => ['required', new ValidMeasurementValue()],
             'unit' => ['required', Rule::in(['cm', 'inches'])],
@@ -35,8 +28,6 @@ class StoreMeasurementRequest extends BaseRequest
     public function messages(): array
     {
         return [
-            'client_id.required' => 'Client is required',
-            'client_id.exists' => 'Selected client not found',
             'measurements.required' => 'Measurements are required',
             'measurements.array' => 'Measurements must be a valid object',
             'measurements.min' => 'At least one measurement field is required',

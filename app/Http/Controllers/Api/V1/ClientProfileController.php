@@ -8,18 +8,19 @@ use App\Http\Resources\ClientResource;
 use App\Http\Resources\MeasurementResource;
 use App\Models\Client;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class ClientProfileController extends Controller
 {
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Client $client): JsonResponse
     {
-        $client = $request->user()->clients()->with([
+        $this->authorize('view', $client);
+
+        $client->load([
             'defaultMeasurement',
             'measurements' => function ($query) {
                 $query->orderBy('measurement_date', 'desc')->limit(2);
             }
-        ])->findOrFail($id);
+        ]);
 
         $defaultMeasurement = $client->defaultMeasurement;
         $latestMeasurements = $client->measurements->reject(function ($measurement) use ($defaultMeasurement) {

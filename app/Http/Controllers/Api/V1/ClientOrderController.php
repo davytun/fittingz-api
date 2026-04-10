@@ -5,44 +5,36 @@ namespace App\Http\Controllers\Api\V1;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\UpdateOrderMeasurementRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
-use App\Http\Requests\Order\UpdateOrderMeasurementRequest;
 use App\Http\Resources\OrderResource;
+use App\Models\Client;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * @group Orders
- */
-class OrderController extends Controller
+class ClientOrderController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, Client $client): JsonResponse
     {
-        $query = $request->user()->orders()->with(['client', 'measurement']);
+        $this->authorize('viewAny', [Order::class, $client]);
 
-        // Filter by client
-        if ($request->has('client_id')) {
-            $query->where('client_id', $request->client_id);
-        }
+        $query = $client->orders()->with(['client', 'measurement']);
 
-        // Filter by status
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
 
-        // Search
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('order_number', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('order_number', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
-        // Filter by date range
         if ($request->has('start_date')) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -56,15 +48,17 @@ class OrderController extends Controller
         return ApiResponse::paginated(
             'Orders retrieved successfully',
             $orders->setCollection(
-                $orders->getCollection()->map(fn($order) => new OrderResource($order))
+                $orders->getCollection()->map(fn ($order) => new OrderResource($order))
             )
         );
     }
 
-    public function store(StoreOrderRequest $request): JsonResponse
+    public function store(StoreOrderRequest $request, Client $client): JsonResponse
     {
-        $order = $request->user()->orders()->create([
-            'client_id' => $request->client_id,
+        $this->authorize('create', [Order::class, $client]);
+
+        $order = $client->orders()->create([
+            'user_id' => $request->user()->id,
             'measurement_id' => $request->measurement_id,
             'title' => $request->title,
             'description' => $request->description,
@@ -85,11 +79,11 @@ class OrderController extends Controller
         );
     }
 
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()
-            ->with(['client', 'measurement', 'payments', 'styles'])
-            ->findOrFail($id);
+        $this->authorize('view', $order);
+
+        $order->load(['client', 'measurement', 'payments', 'styles']);
 
         return ApiResponse::success(
             'Order retrieved successfully',
@@ -97,12 +91,11 @@ class OrderController extends Controller
         );
     }
 
-    public function update(UpdateOrderRequest $request, string $id): JsonResponse
+    public function update(UpdateOrderRequest $request, Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($id);
+        $this->authorize('update', $order);
 
         $order->update($request->validated());
-
         $order->load(['client', 'measurement']);
 
         return ApiResponse::success(
@@ -111,21 +104,20 @@ class OrderController extends Controller
         );
     }
 
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($id);
+        $this->authorize('delete', $order);
 
         $order->delete();
 
         return ApiResponse::success('Order deleted successfully');
     }
 
-    public function updateStatus(UpdateOrderStatusRequest $request, string $id): JsonResponse
+    public function updateStatus(UpdateOrderStatusRequest $request, Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($id);
+        $this->authorize('update', $order);
 
         $order->update(['status' => $request->status]);
-
         $order->load(['client', 'measurement']);
 
         return ApiResponse::success(
@@ -134,18 +126,11 @@ class OrderController extends Controller
         );
     }
 
-    public function updateMeasurement(UpdateOrderMeasurementRequest $request, string $id): JsonResponse
+    public function updateMeasurement(UpdateOrderMeasurementRequest $request, Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($id);
+        $this->authorize('update', $order);
 
-        // Verify measurement belongs to the same client
-        $measurement = $request->user()->measurements()
-            ->where('id', $request->measurement_id)
-            ->where('client_id', $order->client_id)
-            ->firstOrFail();
-
-        $order->update(['measurement_id' => $measurement->id]);
-
+        $order->update(['measurement_id' => $request->measurement_id]);
         $order->load(['client', 'measurement']);
 
         return ApiResponse::success(

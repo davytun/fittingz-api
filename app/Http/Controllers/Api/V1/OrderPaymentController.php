@@ -6,40 +6,25 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Http\Resources\PaymentResource;
+use App\Models\Client;
+use App\Models\Order;
 use App\Models\Payment;
 use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * @group Payments
- */
-class PaymentController extends Controller
+class OrderPaymentController extends Controller
 {
-    protected PaymentService $paymentService;
-
-    public function __construct(PaymentService $paymentService)
+    public function __construct(protected PaymentService $paymentService)
     {
-        $this->paymentService = $paymentService;
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, Client $client, Order $order): JsonResponse
     {
-        $query = $request->user()->payments()->with(['order.client']);
+        $this->authorize('viewAny', [Payment::class, $order]);
 
-        // Filter by order_id
-        if ($request->has('order_id')) {
-            $query->where('order_id', $request->order_id);
-        }
+        $query = $order->payments()->with(['order.client']);
 
-        // Filter by client_id (via order relationship)
-        if ($request->has('client_id')) {
-            $query->whereHas('order', function ($q) use ($request) {
-                $q->where('client_id', $request->client_id);
-            });
-        }
-
-        // Filter by date range
         if ($request->has('start_date')) {
             $query->whereDate('payment_date', '>=', $request->start_date);
         }
@@ -48,7 +33,6 @@ class PaymentController extends Controller
             $query->whereDate('payment_date', '<=', $request->end_date);
         }
 
-        // Filter by payment method
         if ($request->has('payment_method')) {
             $query->where('payment_method', $request->payment_method);
         }
@@ -58,14 +42,14 @@ class PaymentController extends Controller
         return ApiResponse::paginated(
             'Payments retrieved successfully',
             $payments->setCollection(
-                $payments->getCollection()->map(fn($payment) => new PaymentResource($payment))
+                $payments->getCollection()->map(fn ($payment) => new PaymentResource($payment))
             )
         );
     }
 
-    public function store(StorePaymentRequest $request): JsonResponse
+    public function store(StorePaymentRequest $request, Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($request->order_id);
+        $this->authorize('create', [Payment::class, $order]);
 
         $payment = $this->paymentService->recordPayment($order, [
             'user_id' => $request->user()->id,
@@ -85,11 +69,11 @@ class PaymentController extends Controller
         );
     }
 
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Client $client, Order $order, Payment $payment): JsonResponse
     {
-        $payment = $request->user()->payments()
-            ->with(['order.client'])
-            ->findOrFail($id);
+        $this->authorize('view', $payment);
+
+        $payment->load(['order.client']);
 
         return ApiResponse::success(
             'Payment retrieved successfully',
@@ -97,9 +81,9 @@ class PaymentController extends Controller
         );
     }
 
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(Client $client, Order $order, Payment $payment): JsonResponse
     {
-        $payment = $request->user()->payments()->findOrFail($id);
+        $this->authorize('delete', $payment);
 
         $this->paymentService->deletePayment($payment);
 

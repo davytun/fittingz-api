@@ -20,9 +20,13 @@ class HealthCheckController extends Controller
         $healthy = collect($checks)->every(fn($check) => $check['status'] === 'ok');
 
         return response()->json([
-            'status' => $healthy ? 'healthy' : 'unhealthy',
-            'timestamp' => now()->toIso8601String(),
-            'checks' => $checks,
+            'success' => $healthy,
+            'message' => $healthy ? 'Health check passed' : 'Health check failed',
+            'data' => [
+                'status' => $healthy ? 'healthy' : 'unhealthy',
+                'timestamp' => now()->toIso8601String(),
+                'checks' => $checks,
+            ],
         ], $healthy ? 200 : 503);
     }
 

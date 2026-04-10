@@ -2,7 +2,7 @@
 
 use App\Exceptions\Handler;
 use App\Http\Middleware\CheckTokenExpiration;
-use App\Http\Middleware\EnsureClientBelongsToUser;
+use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Middleware\LogApiRequests;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -16,15 +16,15 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
-        apiPrefix: '',
+        apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'token.expiration' => CheckTokenExpiration::class,
-            'client.owner' => EnsureClientBelongsToUser::class,
             'log.api' => LogApiRequests::class,
         ]);
 
+        $middleware->appendToGroup('api', ForceJsonResponse::class);
         $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

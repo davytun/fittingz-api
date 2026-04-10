@@ -11,22 +11,27 @@
 - [ ] Generate strong CRON_SECRET
 - [ ] Review all API endpoints in Postman
 
-## Deployment Steps
-- [ ] Upload files to server (exclude .git, node_modules, tests)
-- [ ] Set document root to /public
-- [ ] Run: composer install --no-dev --optimize-autoloader
-- [ ] Copy .env.production to .env
-- [ ] Run: php artisan key:generate
-- [ ] Run: php artisan migrate --force
-- [ ] Run: php artisan storage:link
-- [ ] Run: php artisan config:cache
-- [ ] Run: php artisan route:cache
-- [ ] Run: php artisan optimize
-- [ ] Set permissions: chmod -R 755 storage bootstrap/cache
+## Deployment Steps (Shared Hosting / cPanel)
+- [ ] Upload files to server (exclude `.git`, `node_modules`, `tests`)
+- [ ] **Point Document Root**: In cPanel > Domains, set the path to `api.fittingz.app/public`
+- [ ] **Dependencies**: 
+    - *If SSH available*: Run `composer install --no-dev --optimize-autoloader`
+    - *If No SSH*: Run `composer install --no-dev` locally and upload the `vendor` folder
+- [ ] **Environment**: Copy `.env.production` to `.env` on server
+- [ ] **Database**:
+    - *If SSH available*: Run `php artisan migrate --force`
+    - *If No SSH*: Create a temporary route in `api.php` to run `Artisan::call('migrate --force')` then delete it.
+- [ ] **Storage Link**: 
+    - *If SSH available*: Run `php artisan storage:link`
+    - *If No SSH*: Create a temporary route to run `Artisan::call('storage:link')`.
+- [ ] **Optimization**: Run `php artisan optimize`.
+- [ ] **Permissions**: Set `storage` and `bootstrap/cache` to `755` (or `775`) recursively.
 
 ## Cron Jobs (cPanel)
-- [ ] Add queue processor: * * * * * curl https://yourdomain.com/cron/YOUR_SECRET/queue
-- [ ] Add backup job: 0 2 * * * cd /path/to/app && php artisan backup:database
+- [ ] **Artisan Scheduler**: Add this to cPanel Cron Jobs (Every Minute `* * * * *`):
+    `/usr/local/bin/php /home/altairagency/api.fittingz.app/artisan schedule:run >> /dev/null 2>&1`
+- [ ] **Alternative Queue (Curl)**: If you can't run a daemon, keep your existing curl-based queue processor.
+    `* * * * * curl https://api.fittingz.app/cron/YOUR_SECRET/queue`
 
 ## Post-Deployment
 - [ ] Test health check: GET /health

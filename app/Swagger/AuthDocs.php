@@ -26,12 +26,12 @@ class AuthDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "User registered successfully", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "message", type: "string", example: "Registration successful"),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "user", type: "object", properties: [
                         new OA\Property(property: "id", type: "string", format: "uuid"),
-                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "business_name", type: "string"),
                         new OA\Property(property: "email", type: "string")
                     ]),
                     new OA\Property(property: "token", type: "string")
@@ -58,12 +58,12 @@ class AuthDocs
         ),
         responses: [
             new OA\Response(response: 200, description: "Login successful", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "message", type: "string", example: "Login successful"),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "user", type: "object", properties: [
                         new OA\Property(property: "id", type: "string", format: "uuid"),
-                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "business_name", type: "string"),
                         new OA\Property(property: "email", type: "string")
                     ]),
                     new OA\Property(property: "token", type: "string")
@@ -177,7 +177,7 @@ class AuthDocs
         security: [["bearerAuth" => []]],
         responses: [
             new OA\Response(response: 200, description: "Token refreshed successfully", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "message", type: "string", example: "Token refreshed successfully"),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "token", type: "string")

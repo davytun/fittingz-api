@@ -18,6 +18,8 @@ class ClientController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Client::class);
+
         $query = $request->user()->clients();
 
         if ($request->has('search')) {
@@ -48,6 +50,8 @@ class ClientController extends Controller
 
     public function store(StoreClientRequest $request): JsonResponse
     {
+        $this->authorize('create', Client::class);
+
         $client = $request->user()->clients()->create($request->validated());
 
         return ApiResponse::success(
@@ -57,9 +61,9 @@ class ClientController extends Controller
         );
     }
 
-    public function show(Request $request, string $id): JsonResponse
+    public function show(Client $client): JsonResponse
     {
-        $client = $request->user()->clients()->findOrFail($id);
+        $this->authorize('view', $client);
 
         return ApiResponse::success(
             'Client retrieved successfully',
@@ -67,9 +71,10 @@ class ClientController extends Controller
         );
     }
 
-    public function update(UpdateClientRequest $request, string $id): JsonResponse
+    public function update(UpdateClientRequest $request, Client $client): JsonResponse
     {
-        $client = $request->user()->clients()->findOrFail($id);
+        $this->authorize('update', $client);
+
         $client->update($request->validated());
 
         return ApiResponse::success(
@@ -78,9 +83,10 @@ class ClientController extends Controller
         );
     }
 
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(Client $client): JsonResponse
     {
-        $client = $request->user()->clients()->findOrFail($id);
+        $this->authorize('delete', $client);
+
         $client->delete();
 
         return ApiResponse::success('Client deleted successfully');

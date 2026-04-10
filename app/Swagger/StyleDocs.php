@@ -18,7 +18,7 @@ class StyleDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "id", type: "string", format: "uuid"),
                     new OA\Property(property: "title", type: "string"),
@@ -26,7 +26,6 @@ class StyleDocs
                     new OA\Property(property: "category", type: "string"),
                     new OA\Property(property: "tags", type: "array", items: new OA\Items(type: "string"))
                 ])),
-                new OA\Property(property: "links", type: "object"),
                 new OA\Property(property: "meta", type: "object")
             ]))
         ]
@@ -86,13 +85,17 @@ class StyleDocs
         ],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: "title", type: "string", maxLength: 255, nullable: true),
-                    new OA\Property(property: "description", type: "string", maxLength: 2000, nullable: true),
-                    new OA\Property(property: "category", type: "string", maxLength: 100, nullable: true),
-                    new OA\Property(property: "tags", type: "array", items: new OA\Items(type: "string", maxLength: 50), nullable: true)
-                ]
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "image", type: "string", format: "binary", nullable: true),
+                        new OA\Property(property: "title", type: "string", maxLength: 255, nullable: true),
+                        new OA\Property(property: "description", type: "string", maxLength: 2000, nullable: true),
+                        new OA\Property(property: "category", type: "string", maxLength: 100, nullable: true),
+                        new OA\Property(property: "tags[]", type: "array", items: new OA\Items(type: "string", maxLength: 50), nullable: true)
+                    ]
+                )
             )
         ),
         responses: [

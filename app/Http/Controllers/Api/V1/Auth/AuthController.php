@@ -10,6 +10,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResendVerificationRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Requests\Auth\VerifyResetCodeRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -34,19 +35,20 @@ class AuthController extends Controller
             DB::beginTransaction();
 
             $user = User::create([
-                'email' => strtolower(trim($request->email)),
-                'password' => $request->password,
-                'business_name' => trim($request->business_name),
-                'contact_phone' => trim($request->contact_phone),
+                'email'            => strtolower(trim($request->email)),
+                'password'         => $request->password,
+                'business_name'    => trim($request->business_name),
+                'contact_phone'    => trim($request->contact_phone),
                 'business_address' => trim($request->business_address),
             ]);
 
-            $user->notify(new VerifyEmailNotification);
+            $code = $user->generateVerificationCode();
+            $user->notify(new VerifyEmailNotification($code));
 
             DB::commit();
 
             return ApiResponse::success(
-                'Registration successful. Please check your email to verify your account.',
+                'Registration successful. Please check your email for your verification code.',
                 ['user' => new UserResource($user)],
                 201
             );
@@ -184,19 +186,27 @@ class AuthController extends Controller
         );
     }
 
-    public function verifyEmail(Request $request): JsonResponse
+    public function verifyEmail(VerifyEmailRequest $request): JsonResponse
     {
-        $user = User::findOrFail($request->route('id'));
-
-        if (! hash_equals(sha1($user->getEmailForVerification()), (string) $request->route('hash'))) {
-            return ApiResponse::error('Invalid verification link', null, 400);
-        }
+        $user = User::where('email', strtolower(trim($request->email)))->first();
 
         if ($user->hasVerifiedEmail()) {
             return ApiResponse::success('Email already verified');
         }
 
+        if ($user->verification_code !== $request->code) {
+            return ApiResponse::error('Invalid verification code', null, 400);
+        }
+
+        if (! $user->verification_code_expires_at || $user->verification_code_expires_at->isPast()) {
+            return ApiResponse::error('Verification code has expired. Please request a new one.', null, 400);
+        }
+
         $user->markEmailAsVerified();
+        $user->update([
+            'verification_code'            => null,
+            'verification_code_expires_at' => null,
+        ]);
 
         return ApiResponse::success('Email verified successfully. You can now log in.');
     }
@@ -209,9 +219,10 @@ class AuthController extends Controller
             return ApiResponse::error('Email already verified', null, 400);
         }
 
-        $user->notify(new VerifyEmailNotification);
+        $code = $user->generateVerificationCode();
+        $user->notify(new VerifyEmailNotification($code));
 
-        return ApiResponse::success('Verification email sent');
+        return ApiResponse::success('Verification code resent. Please check your email.');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse

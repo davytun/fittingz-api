@@ -12,17 +12,12 @@ class ApiResponse
         int $statusCode = 200
     ): JsonResponse {
         $response = [
-            'status' => 'success',
+            'success' => true,
             'message' => $message,
         ];
 
         if ($data !== null) {
             $response['data'] = $data;
-        }
-
-        // Add version in non-production or if explicitly requested
-        if (config('app.env') !== 'production' || request()->has('include_version')) {
-            $response['version'] = config('app.version');
         }
 
         return response()->json($response, $statusCode);
@@ -34,7 +29,7 @@ class ApiResponse
         int $statusCode = 400
     ): JsonResponse {
         $response = [
-            'status' => 'error',
+            'success' => false,
             'message' => $message,
         ];
 
@@ -65,16 +60,18 @@ class ApiResponse
         $paginatedData
     ): JsonResponse {
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => $message,
             'data' => $paginatedData->items(),
-            'pagination' => [
-                'current_page' => $paginatedData->currentPage(),
-                'last_page' => $paginatedData->lastPage(),
-                'per_page' => $paginatedData->perPage(),
-                'total' => $paginatedData->total(),
-                'from' => $paginatedData->firstItem(),
-                'to' => $paginatedData->lastItem(),
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $paginatedData->currentPage(),
+                    'last_page' => $paginatedData->lastPage(),
+                    'per_page' => $paginatedData->perPage(),
+                    'total' => $paginatedData->total(),
+                    'from' => $paginatedData->firstItem(),
+                    'to' => $paginatedData->lastItem(),
+                ],
             ],
         ], 200);
     }
