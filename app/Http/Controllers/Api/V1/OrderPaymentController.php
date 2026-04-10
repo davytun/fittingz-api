@@ -27,7 +27,7 @@ class OrderPaymentController extends Controller
 
         $this->authorize('viewAny', [Payment::class, $order]);
 
-        $query = $order->payments()->with(['order.client']);
+        $query = $order->payments();
 
         if ($request->has('start_date')) {
             $query->whereDate('payment_date', '>=', $request->start_date);
@@ -68,8 +68,6 @@ class OrderPaymentController extends Controller
             'notes' => $request->notes,
         ]);
 
-        $payment->load(['order.client']);
-
         return ApiResponse::success(
             'Payment recorded successfully',
             new PaymentResource($payment),
@@ -84,8 +82,6 @@ class OrderPaymentController extends Controller
         }
 
         $this->authorize('view', $payment);
-
-        $payment->load(['order.client']);
 
         return ApiResponse::success(
             'Payment retrieved successfully',

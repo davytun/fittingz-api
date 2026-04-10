@@ -19,7 +19,7 @@ class ClientMeasurementController extends Controller
         $this->authorize('viewAny', [Measurement::class, $client]);
 
         $measurements = $client->measurements()
-            ->with('client')
+            ->orderBy('is_default', 'desc')
             ->orderBy('measurement_date', 'desc')
             ->get();
 
@@ -34,11 +34,13 @@ class ClientMeasurementController extends Controller
         $this->authorize('create', [Measurement::class, $client]);
 
         $measurement = $client->measurements()->create([
-            'user_id' => $request->user()->id,
-            'measurements' => $request->measurements,
-            'unit' => $request->unit,
-            'notes' => $request->notes,
+            'user_id'          => $request->user()->id,
+            'name'             => $request->name,
+            'fields'           => $request->fields,
+            'unit'             => $request->unit,
+            'notes'            => $request->notes,
             'measurement_date' => $request->measurement_date,
+            'is_default'       => $request->boolean('is_default', false),
         ]);
 
         return ApiResponse::success(
@@ -56,8 +58,6 @@ class ClientMeasurementController extends Controller
 
         $this->authorize('view', $measurement);
 
-        $measurement->load('client:id,name');
-
         return ApiResponse::success(
             'Measurement retrieved successfully',
             new MeasurementResource($measurement)
@@ -74,27 +74,27 @@ class ClientMeasurementController extends Controller
 
         $updateData = $request->validated();
 
-        if (isset($updateData['measurements'])) {
-            $existingMeasurements = $measurement->measurements;
-            $newMeasurements = $updateData['measurements'];
+        if (isset($updateData['fields'])) {
+            $existingFields = $measurement->fields;
+            $newFields = $updateData['fields'];
 
-            foreach ($newMeasurements as $key => $value) {
+            foreach ($newFields as $key => $value) {
                 if ($value === null) {
-                    unset($existingMeasurements[$key]);
+                    unset($existingFields[$key]);
                 } else {
-                    $existingMeasurements[$key] = $value;
+                    $existingFields[$key] = $value;
                 }
             }
 
-            if (empty($existingMeasurements)) {
+            if (empty($existingFields)) {
                 return ApiResponse::error(
-                    'Cannot remove all measurements. At least one measurement field is required.',
+                    'Cannot remove all fields. At least one measurement field is required.',
                     null,
                     422
                 );
             }
 
-            $updateData['measurements'] = $existingMeasurements;
+            $updateData['fields'] = $existingFields;
         }
 
         $measurement->update($updateData);

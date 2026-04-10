@@ -32,13 +32,15 @@ class ApiResponse
 
     public static function validationError(
         array $errors,
-        string $message = 'Validation failed'
+        string $message = null
     ): JsonResponse {
         $formattedErrors = [];
 
         foreach ($errors as $field => $messages) {
             $formattedErrors[$field] = is_array($messages) ? $messages[0] : $messages;
         }
+
+        $message = $message ?? (string) collect($formattedErrors)->first();
 
         return self::error($message, $formattedErrors, 422);
     }

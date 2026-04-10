@@ -17,55 +17,52 @@ class UpdateMeasurementRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'measurements' => ['sometimes', 'array', new ValidMeasurementKeys()],
-            'measurements.*' => ['nullable', new ValidMeasurementValue()],
-            'unit' => ['sometimes', 'required', Rule::in(['cm', 'inches'])],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'name'             => ['sometimes', 'string', 'max:255'],
+            'fields'           => ['sometimes', 'array', new ValidMeasurementKeys()],
+            'fields.*'         => ['nullable', new ValidMeasurementValue()],
+            'unit'             => ['sometimes', 'required', Rule::in(['cm', 'inches'])],
+            'notes'            => ['nullable', 'string', 'max:1000'],
             'measurement_date' => ['sometimes', 'required', 'date', 'before_or_equal:today'],
+            'is_default'       => ['sometimes', 'boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'measurements.array' => 'Measurements must be a valid object',
-            'unit.required' => 'Measurement unit is required',
-            'unit.in' => 'Unit must be either cm or inches',
-            'measurement_date.required' => 'Measurement date is required',
-            'measurement_date.date' => 'Invalid date format',
+            'fields.array'                     => 'Fields must be a valid object',
+            'unit.required'                    => 'Measurement unit is required',
+            'unit.in'                          => 'Unit must be either cm or inches',
+            'measurement_date.required'        => 'Measurement date is required',
+            'measurement_date.date'            => 'Invalid date format',
             'measurement_date.before_or_equal' => 'Measurement date cannot be in the future',
         ];
     }
 
     protected function prepareForValidation()
     {
-        if ($this->has('measurements')) {
-            $measurements = $this->measurements;
-            
-            if (is_array($measurements)) {
+        if ($this->has('fields')) {
+            $fields = $this->fields;
+
+            if (is_array($fields)) {
                 $sanitized = [];
-                foreach ($measurements as $key => $value) {
+                foreach ($fields as $key => $value) {
                     $sanitizedKey = trim(strtolower(str_replace(' ', '_', $key)));
-                    
-                    // Allow null to delete fields
-                    if ($value === null) {
-                        $sanitized[$sanitizedKey] = null;
-                    } else {
-                        $sanitizedValue = is_string($value) ? trim($value) : $value;
-                        $sanitized[$sanitizedKey] = $sanitizedValue;
-                    }
+
+                    // Allow null to delete a field
+                    $sanitized[$sanitizedKey] = ($value === null) ? null : (is_string($value) ? trim($value) : $value);
                 }
-                
-                $this->merge([
-                    'measurements' => $sanitized,
-                ]);
+
+                $this->merge(['fields' => $sanitized]);
             }
         }
-        
+
+        if ($this->has('name')) {
+            $this->merge(['name' => trim($this->name)]);
+        }
+
         if ($this->has('notes')) {
-            $this->merge([
-                'notes' => $this->notes ? trim($this->notes) : null,
-            ]);
+            $this->merge(['notes' => $this->notes ? trim($this->notes) : null]);
         }
     }
 }
