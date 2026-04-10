@@ -13,6 +13,8 @@ use App\Models\Client;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
 
 class ClientOrderController extends Controller
 {
@@ -35,12 +37,23 @@ class ClientOrderController extends Controller
             });
         }
 
-        if ($request->has('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        }
+        if ($request->has('start_date') || $request->has('end_date')) {
+            $dateValidation = Validator::make($request->only('start_date', 'end_date'), [
+                'start_date' => ['nullable', 'date'],
+                'end_date'   => ['nullable', 'date', 'after_or_equal:start_date'],
+            ]);
 
-        if ($request->has('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
+            if ($dateValidation->fails()) {
+                return ApiResponse::error('Invalid date filters.', $dateValidation->errors(), 422);
+            }
+
+            if ($request->has('start_date')) {
+                $query->whereDate('created_at', '>=', Carbon::parse($request->start_date));
+            }
+
+            if ($request->has('end_date')) {
+                $query->whereDate('created_at', '<=', Carbon::parse($request->end_date));
+            }
         }
 
         $orders = $query->latest()->paginate(15);
@@ -81,6 +94,10 @@ class ClientOrderController extends Controller
 
     public function show(Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('view', $order);
 
         $order->load(['client', 'measurement', 'payments', 'styles']);
@@ -93,6 +110,10 @@ class ClientOrderController extends Controller
 
     public function update(UpdateOrderRequest $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $order);
 
         $order->update($request->validated());
@@ -106,6 +127,10 @@ class ClientOrderController extends Controller
 
     public function destroy(Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('delete', $order);
 
         $order->delete();
@@ -115,6 +140,10 @@ class ClientOrderController extends Controller
 
     public function updateStatus(UpdateOrderStatusRequest $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $order);
 
         $order->update(['status' => $request->status]);
@@ -128,6 +157,10 @@ class ClientOrderController extends Controller
 
     public function updateMeasurement(UpdateOrderMeasurementRequest $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $order);
 
         $order->update(['measurement_id' => $request->measurement_id]);

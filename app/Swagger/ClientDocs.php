@@ -31,7 +31,8 @@ class ClientDocs
                     new OA\Property(property: "created_at", type: "string", format: "date-time")
                 ])),
                 new OA\Property(property: "meta", type: "object")
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]
     public function index() {}
@@ -55,6 +56,7 @@ class ClientDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "Client created successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -70,6 +72,8 @@ class ClientDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Client retrieved successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Client not found")
         ]
     )]
@@ -96,8 +100,10 @@ class ClientDocs
         ),
         responses: [
             new OA\Response(response: 200, description: "Client updated successfully"),
-            new OA\Response(response: 422, description: "Validation error"),
-            new OA\Response(response: 404, description: "Client not found")
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client not found"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function update() {}
@@ -112,6 +118,8 @@ class ClientDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Client deleted successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Client not found")
         ]
     )]
@@ -137,6 +145,8 @@ class ClientDocs
                     ])
                 ])
             ])),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Client not found")
         ]
     )]

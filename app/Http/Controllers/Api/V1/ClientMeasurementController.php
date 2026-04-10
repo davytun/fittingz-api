@@ -10,6 +10,7 @@ use App\Http\Resources\MeasurementResource;
 use App\Models\Client;
 use App\Models\Measurement;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class ClientMeasurementController extends Controller
 {
@@ -49,6 +50,10 @@ class ClientMeasurementController extends Controller
 
     public function show(Client $client, Measurement $measurement): JsonResponse
     {
+        if ($measurement->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('view', $measurement);
 
         $measurement->load('client:id,name');
@@ -61,6 +66,10 @@ class ClientMeasurementController extends Controller
 
     public function update(UpdateMeasurementRequest $request, Client $client, Measurement $measurement): JsonResponse
     {
+        if ($measurement->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $measurement);
 
         $updateData = $request->validated();
@@ -79,7 +88,7 @@ class ClientMeasurementController extends Controller
 
             if (empty($existingMeasurements)) {
                 return ApiResponse::error(
-                    'Cannot remove all measurements. At least one field is required.',
+                    'Cannot remove all measurements. At least one measurement field is required.',
                     null,
                     422
                 );
@@ -98,6 +107,10 @@ class ClientMeasurementController extends Controller
 
     public function destroy(Client $client, Measurement $measurement): JsonResponse
     {
+        if ($measurement->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('delete', $measurement);
 
         $measurement->delete();
@@ -107,9 +120,19 @@ class ClientMeasurementController extends Controller
 
     public function setDefault(Client $client, Measurement $measurement): JsonResponse
     {
+        if ($measurement->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $measurement);
 
-        $measurement->update(['is_default' => true]);
+        DB::transaction(function () use ($client, $measurement) {
+            Measurement::where('client_id', $client->id)
+                ->where('is_default', true)
+                ->update(['is_default' => false]);
+
+            $measurement->update(['is_default' => true]);
+        });
 
         return ApiResponse::success(
             'Default measurement updated successfully',

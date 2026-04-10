@@ -14,8 +14,8 @@ class VerifyEmailRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
-            'code'  => ['required', 'string', 'size:4'],
+            'email' => ['required', 'email'],
+            'code'  => ['required', 'digits:4'],
         ];
     }
 
@@ -24,9 +24,8 @@ class VerifyEmailRequest extends BaseRequest
         return [
             'email.required' => 'Email address is required',
             'email.email'    => 'Please provide a valid email address',
-            'email.exists'   => 'No account found with this email address',
             'code.required'  => 'Verification code is required',
-            'code.size'      => 'Verification code must be 4 digits',
+            'code.digits'    => 'Verification code must be 4 digits',
         ];
     }
 }

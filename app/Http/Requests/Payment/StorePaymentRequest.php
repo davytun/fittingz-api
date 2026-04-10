@@ -56,7 +56,7 @@ class StorePaymentRequest extends BaseRequest
                     if ($this->amount > $balance) {
                         $validator->errors()->add(
                             'amount',
-                            "Payment amount ({$this->amount}) exceeds outstanding balance ({$balance})"
+                            'Payment amount exceeds the outstanding balance for this order.'
                         );
                     }
                 }

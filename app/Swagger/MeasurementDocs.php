@@ -24,7 +24,10 @@ class MeasurementDocs
                     new OA\Property(property: "is_default", type: "boolean"),
                     new OA\Property(property: "measurement_date", type: "string", format: "date")
                 ]))
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client not found")
         ]
     )]
     public function index() {}
@@ -51,6 +54,9 @@ class MeasurementDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "Measurement profile created successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -67,6 +73,8 @@ class MeasurementDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Measurement profile retrieved successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Measurement not found")
         ]
     )]
@@ -94,8 +102,10 @@ class MeasurementDocs
         ),
         responses: [
             new OA\Response(response: 200, description: "Measurement profile updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Measurement not found"),
-            new OA\Response(response: 422, description: "Validation error")
+            new OA\Response(response: 422, description: "Validation error — including attempt to remove all measurements")
         ]
     )]
     public function update() {}
@@ -111,6 +121,8 @@ class MeasurementDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Default measurement updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Measurement not found")
         ]
     )]
@@ -127,6 +139,8 @@ class MeasurementDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Measurement profile deleted successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Measurement not found")
         ]
     )]

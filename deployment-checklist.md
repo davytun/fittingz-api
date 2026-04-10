@@ -19,17 +19,18 @@
     - *If No SSH*: Run `composer install --no-dev` locally and upload the `vendor` folder
 - [ ] **Environment**: Copy `.env.production` to `.env` on server
 - [ ] **Database**:
+    - **IMPORTANT: Back up the database before running migrations** (e.g., `mysqldump -u user -p dbname > backup_$(date +%Y%m%d).sql`). Verify the backup completed before proceeding.
     - *If SSH available*: Run `php artisan migrate --force`
-    - *If No SSH*: Create a temporary route in `api.php` to run `Artisan::call('migrate --force')` then delete it.
+    - *If No SSH*: Use the hosting control panel's terminal/SSH, or request SSH access from your host. **Do NOT create a public route in `api.php` that calls `Artisan::call('migrate --force')` — this exposes schema changes over HTTP and must never be used.**
 - [ ] **Storage Link**: 
     - *If SSH available*: Run `php artisan storage:link`
-    - *If No SSH*: Create a temporary route to run `Artisan::call('storage:link')`.
-- [ ] **Optimization**: Run `php artisan optimize`.
+    - *If No SSH*: Use the hosting control panel's terminal/SSH, or request SSH access from your host. **Do NOT create a public route that calls `Artisan::call('storage:link')` — use a secure, authenticated endpoint with IP whitelisting if SSH is truly unavailable.**
+- [ ] **Optimization**: Run `php artisan config:cache && php artisan route:cache && php artisan view:cache`.
 - [ ] **Permissions**: Set `storage` and `bootstrap/cache` to `755` (or `775`) recursively.
 
 ## Cron Jobs (cPanel)
 - [ ] **Artisan Scheduler**: Add this to cPanel Cron Jobs (Every Minute `* * * * *`):
-    `/usr/local/bin/php /home/altairagency/api.fittingz.app/artisan schedule:run >> /dev/null 2>&1`
+    `/usr/local/bin/php /home/{cpanel_username}/{app_root_path}/artisan schedule:run >> /dev/null 2>&1`
 - [ ] **Alternative Queue (Curl)**: If you can't run a daemon, keep your existing curl-based queue processor.
     `* * * * * curl https://api.fittingz.app/cron/YOUR_SECRET/queue`
 

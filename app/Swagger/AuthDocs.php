@@ -25,22 +25,49 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 201, description: "User registered successfully", content: new OA\JsonContent(properties: [
+            new OA\Response(response: 201, description: "Registration successful. Verification code sent to email.", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Registration successful"),
+                new OA\Property(property: "message", type: "string", example: "Registration successful. Please check your email for your verification code."),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "user", type: "object", properties: [
                         new OA\Property(property: "id", type: "string", format: "uuid"),
                         new OA\Property(property: "business_name", type: "string"),
-                        new OA\Property(property: "email", type: "string")
-                    ]),
-                    new OA\Property(property: "token", type: "string")
+                        new OA\Property(property: "email", type: "string"),
+                        new OA\Property(property: "email_verified_at", type: "string", format: "date-time", nullable: true)
+                    ])
                 ])
             ])),
-            new OA\Response(response: 422, description: "Validation error")
+            new OA\Response(response: 422, description: "Validation error"),
+            new OA\Response(response: 500, description: "Registration failed")
         ]
     )]
     public function register() {}
+
+    #[OA\Post(
+        path: "/api/v1/auth/verify-email",
+        summary: "Verify email address with a 4-digit code",
+        tags: ["Authentication"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "code"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
+                    new OA\Property(property: "code", type: "integer", example: 1234, description: "4-digit verification code sent to the email address")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Email verified successfully", content: new OA\JsonContent(properties: [
+                new OA\Property(property: "success", type: "boolean", example: true),
+                new OA\Property(property: "message", type: "string", example: "Email verified successfully."),
+                new OA\Property(property: "data", type: "object", nullable: true)
+            ])),
+            new OA\Response(response: 400, description: "Invalid or expired verification code"),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
+    public function verifyEmail() {}
 
     #[OA\Post(
         path: "/api/v1/auth/login",
@@ -59,25 +86,26 @@ class AuthDocs
         responses: [
             new OA\Response(response: 200, description: "Login successful", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Login successful"),
+                new OA\Property(property: "message", type: "string", example: "Login successful."),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "user", type: "object", properties: [
                         new OA\Property(property: "id", type: "string", format: "uuid"),
                         new OA\Property(property: "business_name", type: "string"),
                         new OA\Property(property: "email", type: "string")
                     ]),
-                    new OA\Property(property: "token", type: "string")
+                    new OA\Property(property: "token", type: "string", description: "Bearer token for authenticated requests")
                 ])
             ])),
-            new OA\Response(response: 401, description: "Invalid credentials"),
-            new OA\Response(response: 403, description: "Account locked")
+            new OA\Response(response: 401, description: "Invalid email or password"),
+            new OA\Response(response: 403, description: "Account locked due to too many failed attempts"),
+            new OA\Response(response: 422, description: "Email not yet verified")
         ]
     )]
     public function login() {}
 
     #[OA\Post(
         path: "/api/v1/auth/resend-verification",
-        summary: "Resend email verification link",
+        summary: "Resend email verification code",
         tags: ["Authentication"],
         requestBody: new OA\RequestBody(
             required: true,
@@ -89,15 +117,17 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Verification link sent"),
-            new OA\Response(response: 400, description: "Email already verified")
+            new OA\Response(response: 200, description: "Verification code sent"),
+            new OA\Response(response: 400, description: "Email already verified"),
+            new OA\Response(response: 404, description: "No account found with this email address"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function resendVerification() {}
 
     #[OA\Post(
         path: "/api/v1/auth/forgot-password",
-        summary: "Send password reset code",
+        summary: "Send password reset code to email",
         tags: ["Authentication"],
         requestBody: new OA\RequestBody(
             required: true,
@@ -109,8 +139,9 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Reset code sent"),
-            new OA\Response(response: 404, description: "User not found")
+            new OA\Response(response: 200, description: "Password reset code sent to email"),
+            new OA\Response(response: 404, description: "No account found with this email address"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function forgotPassword() {}
@@ -125,20 +156,21 @@ class AuthDocs
                 required: ["email", "token"],
                 properties: [
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    new OA\Property(property: "token", type: "string", example: "1234", minLength: 4, maxLength: 4)
+                    new OA\Property(property: "token", type: "integer", example: 1234, description: "4-digit reset code sent to the email address")
                 ]
             )
         ),
         responses: [
             new OA\Response(response: 200, description: "Reset code verified"),
-            new OA\Response(response: 400, description: "Invalid code")
+            new OA\Response(response: 400, description: "Invalid or expired reset code"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function verifyResetCode() {}
 
     #[OA\Post(
         path: "/api/v1/auth/reset-password",
-        summary: "Reset user password",
+        summary: "Reset user password using verified reset code",
         tags: ["Authentication"],
         requestBody: new OA\RequestBody(
             required: true,
@@ -146,26 +178,28 @@ class AuthDocs
                 required: ["email", "token", "password", "password_confirmation"],
                 properties: [
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    new OA\Property(property: "token", type: "string", example: "1234", minLength: 4, maxLength: 4),
+                    new OA\Property(property: "token", type: "integer", example: 1234, description: "4-digit reset code sent to the email address"),
                     new OA\Property(property: "password", type: "string", format: "password", minLength: 8),
                     new OA\Property(property: "password_confirmation", type: "string", format: "password")
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Password reset successful"),
-            new OA\Response(response: 400, description: "Invalid code or token")
+            new OA\Response(response: 200, description: "Password reset successfully"),
+            new OA\Response(response: 400, description: "Invalid or expired reset code"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function resetPassword() {}
 
     #[OA\Post(
         path: "/api/v1/auth/logout",
-        summary: "Logout user and revoke token",
+        summary: "Logout user and revoke current token",
         tags: ["Authentication"],
         security: [["bearerAuth" => []]],
         responses: [
-            new OA\Response(response: 200, description: "Logged out efficiently")
+            new OA\Response(response: 200, description: "Logged out successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]
     public function logout() {}
@@ -178,11 +212,12 @@ class AuthDocs
         responses: [
             new OA\Response(response: 200, description: "Token refreshed successfully", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Token refreshed successfully"),
+                new OA\Property(property: "message", type: "string", example: "Token refreshed successfully."),
                 new OA\Property(property: "data", type: "object", properties: [
-                    new OA\Property(property: "token", type: "string")
+                    new OA\Property(property: "token", type: "string", description: "New bearer token")
                 ])
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]
     public function refresh() {}
@@ -195,17 +230,19 @@ class AuthDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["current_password", "password", "password_confirmation"],
+                required: ["current_password", "new_password", "new_password_confirmation"],
                 properties: [
                     new OA\Property(property: "current_password", type: "string", format: "password"),
-                    new OA\Property(property: "password", type: "string", format: "password", minLength: 8),
-                    new OA\Property(property: "password_confirmation", type: "string", format: "password")
+                    new OA\Property(property: "new_password", type: "string", format: "password", minLength: 8),
+                    new OA\Property(property: "new_password_confirmation", type: "string", format: "password")
                 ]
             )
         ),
         responses: [
             new OA\Response(response: 200, description: "Password changed successfully"),
-            new OA\Response(response: 400, description: "Incorrect current password")
+            new OA\Response(response: 400, description: "Current password is incorrect"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function changePassword() {}

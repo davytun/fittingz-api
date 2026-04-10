@@ -15,6 +15,10 @@ class ClientOrderStyleController extends Controller
 {
     public function attach(Request $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $order);
 
         $validated = $request->validate([
@@ -29,15 +33,7 @@ class ClientOrderStyleController extends Controller
             'style_id.exists' => 'Style not found',
         ]);
 
-        if ($order->styles()->where('style_id', $validated['style_id'])->exists()) {
-            return ApiResponse::error(
-                'Style is already linked to this order',
-                null,
-                400
-            );
-        }
-
-        $order->styles()->attach($validated['style_id']);
+        $order->styles()->syncWithoutDetaching([$validated['style_id']]);
         $style = $request->user()->styles()->findOrFail($validated['style_id']);
 
         return ApiResponse::success(
@@ -49,13 +45,17 @@ class ClientOrderStyleController extends Controller
 
     public function detach(Request $request, Client $client, Order $order, string $style): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('update', $order);
 
         $request->user()->styles()->findOrFail($style);
 
         if (!$order->styles()->where('style_id', $style)->exists()) {
             return ApiResponse::error(
-                'Style is not linked to this order',
+                'Style is not linked to this order.',
                 null,
                 404
             );

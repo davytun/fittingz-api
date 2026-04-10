@@ -94,7 +94,7 @@ class Handler extends ExceptionHandler
 
         if ($exception instanceof AuthorizationException) {
             return ApiResponse::error(
-                $exception->getMessage() ?: 'This action is unauthorized.',
+                'This action is unauthorized.',
                 null,
                 403
             );
@@ -153,10 +153,20 @@ class Handler extends ExceptionHandler
 
         // Generic HTTP exceptions
         if ($exception instanceof HttpException) {
+            $statusCode = $exception->getStatusCode();
+            $defaults = [
+                400 => 'Bad request',
+                403 => 'This action is unauthorized.',
+                404 => 'Resource not found',
+                405 => 'Method not allowed',
+                429 => 'Too many requests. Please try again later.',
+                500 => 'An unexpected error occurred. Please try again.',
+            ];
+
             return ApiResponse::error(
-                $exception->getMessage() ?: 'An error occurred',
+                $defaults[$statusCode] ?? 'An error occurred',
                 null,
-                $exception->getStatusCode()
+                $statusCode
             );
         }
 

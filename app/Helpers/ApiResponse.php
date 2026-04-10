@@ -11,16 +11,11 @@ class ApiResponse
         mixed $data = null,
         int $statusCode = 200
     ): JsonResponse {
-        $response = [
+        return response()->json([
             'success' => true,
             'message' => $message,
-        ];
-
-        if ($data !== null) {
-            $response['data'] = $data;
-        }
-
-        return response()->json($response, $statusCode);
+            'data'    => $data,
+        ], $statusCode);
     }
 
     public static function error(
@@ -28,27 +23,20 @@ class ApiResponse
         mixed $errors = null,
         int $statusCode = 400
     ): JsonResponse {
-        $response = [
+        return response()->json([
             'success' => false,
             'message' => $message,
-        ];
-
-        if ($errors !== null) {
-            $response['errors'] = $errors;
-        }
-
-        return response()->json($response, $statusCode);
+            'errors'  => $errors,
+        ], $statusCode);
     }
 
     public static function validationError(
         array $errors,
         string $message = 'Validation failed'
     ): JsonResponse {
-        // Flatten validation errors to simple key-value pairs
         $formattedErrors = [];
-        
+
         foreach ($errors as $field => $messages) {
-            // Take only the first error message for each field
             $formattedErrors[$field] = is_array($messages) ? $messages[0] : $messages;
         }
 

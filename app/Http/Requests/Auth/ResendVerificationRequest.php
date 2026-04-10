@@ -14,7 +14,7 @@ class ResendVerificationRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
+            'email' => ['required', 'email'],
         ];
     }
 
@@ -22,8 +22,7 @@ class ResendVerificationRequest extends BaseRequest
     {
         return [
             'email.required' => 'Email address is required',
-            'email.email' => 'Please provide a valid email address',
-            'email.exists' => 'No account found with this email address',
+            'email.email'    => 'Please provide a valid email address',
         ];
     }
 }

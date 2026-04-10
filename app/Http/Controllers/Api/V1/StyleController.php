@@ -113,9 +113,9 @@ class StyleController extends Controller
         // Check if style is linked to any orders
         if ($style->orders()->exists()) {
             return ApiResponse::error(
-                'Cannot delete style. It is linked to one or more orders.',
+                'Cannot delete this style. It is linked to one or more orders.',
                 null,
-                400
+                409
             );
         }
 
