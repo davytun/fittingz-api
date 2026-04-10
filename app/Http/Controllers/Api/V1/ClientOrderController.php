@@ -14,6 +14,7 @@ use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ClientOrderController extends Controller
@@ -22,7 +23,18 @@ class ClientOrderController extends Controller
     {
         $this->authorize('viewAny', [Order::class, $client]);
 
-        $query = $client->orders()->with(['client', 'measurement']);
+        // Base: always include payment summary via withCount (no N+1)
+        $query = $client->orders()->withCount('payments');
+
+        // Conditional eager loading via ?include=measurement,styles
+        $allowed  = ['measurement', 'styles'];
+        $includes = array_intersect(
+            explode(',', $request->query('include', '')),
+            $allowed
+        );
+        if ($includes) {
+            $query->with($includes);
+        }
 
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -31,9 +43,9 @@ class ClientOrderController extends Controller
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('order_number', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhere('style_description', 'like', "%{$search}%")
+                  ->orWhereJsonContains('details', $search);
             });
         }
 
@@ -70,20 +82,34 @@ class ClientOrderController extends Controller
     {
         $this->authorize('create', [Order::class, $client]);
 
-        $order = $client->orders()->create([
-            'user_id' => $request->user()->id,
-            'measurement_id' => $request->measurement_id,
-            'title' => $request->title,
-            'description' => $request->description,
-            'quantity' => $request->quantity,
-            'total_amount' => $request->total_amount,
-            'status' => $request->status ?? 'pending',
-            'due_date' => $request->due_date,
-            'delivery_date' => $request->delivery_date,
-            'notes' => $request->notes,
-        ]);
+        $order = DB::transaction(function () use ($request, $client) {
+            $order = $client->orders()->create([
+                'user_id'           => $request->user()->id,
+                'measurement_id'    => $request->measurement_id,
+                'details'           => $request->details,
+                'style_description' => $request->style_description,
+                'total_amount'      => $request->total_amount,
+                'currency'          => $request->currency ?? 'NGN',
+                'status'            => $request->status ?? 'pending_payment',
+                'due_date'          => $request->due_date,
+                'delivery_date'     => $request->delivery_date,
+                'notes'             => $request->notes,
+            ]);
 
-        $order->load(['client', 'measurement']);
+            if ($request->filled('deposit') && $request->deposit > 0) {
+                $order->payments()->create([
+                    'user_id'        => $request->user()->id,
+                    'amount'         => $request->deposit,
+                    'payment_date'   => now()->toDateString(),
+                    'payment_method' => $request->deposit_method ?? 'cash',
+                    'notes'          => 'Initial deposit',
+                ]);
+            }
+
+            return $order;
+        });
+
+        $order->loadCount('payments')->load(['measurement']);
 
         return ApiResponse::success(
             'Order created successfully',
@@ -100,7 +126,7 @@ class ClientOrderController extends Controller
 
         $this->authorize('view', $order);
 
-        $order->load(['client', 'measurement', 'payments', 'styles']);
+        $order->loadCount('payments')->load(['measurement', 'payments', 'styles']);
 
         return ApiResponse::success(
             'Order retrieved successfully',
@@ -117,7 +143,7 @@ class ClientOrderController extends Controller
         $this->authorize('update', $order);
 
         $order->update($request->validated());
-        $order->load(['client', 'measurement']);
+        $order->loadCount('payments')->load(['measurement']);
 
         return ApiResponse::success(
             'Order updated successfully',
@@ -147,7 +173,7 @@ class ClientOrderController extends Controller
         $this->authorize('update', $order);
 
         $order->update(['status' => $request->status]);
-        $order->load(['client', 'measurement']);
+        $order->loadCount('payments')->load(['measurement']);
 
         return ApiResponse::success(
             'Order status updated successfully',
@@ -164,7 +190,7 @@ class ClientOrderController extends Controller
         $this->authorize('update', $order);
 
         $order->update(['measurement_id' => $request->measurement_id]);
-        $order->load(['client', 'measurement']);
+        $order->loadCount('payments')->load(['measurement']);
 
         return ApiResponse::success(
             'Order measurement updated successfully',

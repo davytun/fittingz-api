@@ -18,7 +18,8 @@ class Measurement extends Model
     protected $fillable = [
         'client_id',
         'user_id',
-        'measurements',
+        'name',
+        'fields',
         'unit',
         'notes',
         'measurement_date',
@@ -28,7 +29,7 @@ class Measurement extends Model
     protected function casts(): array
     {
         return [
-            'measurements' => 'array',
+            'fields' => 'array',
             'unit' => MeasurementUnit::class,
             'measurement_date' => 'date',
             'is_default' => 'boolean',

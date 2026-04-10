@@ -17,7 +17,7 @@ class UpdateOrderStatusRequest extends BaseRequest
         return [
             'status' => [
                 'required',
-                Rule::in(['pending', 'in_progress', 'completed', 'delivered', 'cancelled']),
+                Rule::in(['pending_payment', 'in_progress', 'completed', 'delivered', 'cancelled']),
             ],
         ];
     }
@@ -26,7 +26,7 @@ class UpdateOrderStatusRequest extends BaseRequest
     {
         return [
             'status.required' => 'Status is required',
-            'status.in' => 'Invalid status. Must be: pending, in_progress, completed, delivered, or cancelled',
+            'status.in' => 'Invalid status. Must be: pending_payment, in_progress, completed, delivered, or cancelled',
         ];
     }
 }

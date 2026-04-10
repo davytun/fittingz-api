@@ -15,26 +15,26 @@ class ClientProfileController extends Controller
     {
         $this->authorize('view', $client);
 
-        $client->load([
+        $client->loadCount('measurements')->load([
             'defaultMeasurement',
             'measurements' => function ($query) {
-                $query->orderBy('measurement_date', 'desc')->limit(2);
-            }
+                $query->orderBy('measurement_date', 'desc')->limit(3);
+            },
         ]);
 
         $defaultMeasurement = $client->defaultMeasurement;
-        $latestMeasurements = $client->measurements->reject(function ($measurement) use ($defaultMeasurement) {
-            return $defaultMeasurement && $measurement->id === $defaultMeasurement->id;
-        })->values();
+        $latestMeasurements = $client->measurements->reject(
+            fn ($m) => $defaultMeasurement && $m->id === $defaultMeasurement->id
+        )->take(2)->values();
 
         return ApiResponse::success(
             'Client profile retrieved successfully',
             [
-                'client' => new ClientResource($client),
+                'client'       => new ClientResource($client),
                 'measurements' => [
-                    'default' => $defaultMeasurement ? new MeasurementResource($defaultMeasurement) : null,
-                    'latest' => MeasurementResource::collection($latestMeasurements),
-                    'total_count' => $client->measurements()->count(),
+                    'default'     => $defaultMeasurement ? new MeasurementResource($defaultMeasurement) : null,
+                    'latest'      => MeasurementResource::collection($latestMeasurements),
+                    'total_count' => $client->measurements_count,
                 ],
             ]
         );

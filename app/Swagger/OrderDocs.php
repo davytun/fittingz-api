@@ -13,10 +13,11 @@ class OrderDocs
         security: [["bearerAuth" => []]],
         parameters: [
             new OA\Parameter(name: "client", in: "path", description: "Client UUID", required: true, schema: new OA\Schema(type: "string", format: "uuid")),
-            new OA\Parameter(name: "status", in: "query", description: "Filter by order status", required: false, schema: new OA\Schema(type: "string", enum: ["pending", "in_progress", "completed", "delivered", "cancelled"])),
-            new OA\Parameter(name: "search", in: "query", description: "Search title, order number, or description", required: false, schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "status", in: "query", description: "Filter by order status", required: false, schema: new OA\Schema(type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"])),
+            new OA\Parameter(name: "search", in: "query", description: "Search by order number or style description", required: false, schema: new OA\Schema(type: "string")),
             new OA\Parameter(name: "start_date", in: "query", description: "Filter orders created on or after date", required: false, schema: new OA\Schema(type: "string", format: "date")),
             new OA\Parameter(name: "end_date", in: "query", description: "Filter orders created on or before date", required: false, schema: new OA\Schema(type: "string", format: "date")),
+            new OA\Parameter(name: "include", in: "query", description: "Comma-separated relations to include: measurement, styles", required: false, schema: new OA\Schema(type: "string", example: "measurement,styles")),
             new OA\Parameter(name: "page", in: "query", description: "Page number", required: false, schema: new OA\Schema(type: "integer", default: 1))
         ],
         responses: [
@@ -25,11 +26,15 @@ class OrderDocs
                 new OA\Property(property: "message", type: "string", example: "Orders retrieved successfully"),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "id", type: "string", format: "uuid"),
-                    new OA\Property(property: "title", type: "string"),
-                    new OA\Property(property: "quantity", type: "integer"),
+                    new OA\Property(property: "order_number", type: "string"),
+                    new OA\Property(property: "details", type: "object", nullable: true, example: ["fabric" => "cotton", "color" => "blue"]),
+                    new OA\Property(property: "style_description", type: "string", nullable: true),
                     new OA\Property(property: "total_amount", type: "number", format: "float"),
+                    new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"]),
+                    new OA\Property(property: "total_paid", type: "number", format: "float"),
                     new OA\Property(property: "balance", type: "number", format: "float"),
-                    new OA\Property(property: "status", type: "string", enum: ["pending", "in_progress", "completed", "delivered", "cancelled"]),
+                    new OA\Property(property: "payment_status", type: "string", enum: ["unpaid", "partial", "fully_paid"]),
+                    new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"]),
                     new OA\Property(property: "due_date", type: "string", format: "date", nullable: true)
                 ])),
                 new OA\Property(property: "meta", type: "object")
@@ -53,17 +58,18 @@ class OrderDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["title", "quantity", "total_amount"],
+                required: ["total_amount"],
                 properties: [
                     new OA\Property(property: "measurement_id", type: "string", format: "uuid", nullable: true),
-                    new OA\Property(property: "title", type: "string", maxLength: 255, example: "Custom Wedding Suit"),
-                    new OA\Property(property: "description", type: "string", maxLength: 2000, nullable: true),
-                    new OA\Property(property: "quantity", type: "integer", minimum: 1, example: 1),
-                    new OA\Property(property: "total_amount", type: "number", format: "float", minimum: 0, maximum: 99999999.99, example: 500.00),
-                    new OA\Property(property: "status", type: "string", enum: ["pending", "in_progress", "completed", "delivered", "cancelled"], default: "pending"),
-                    new OA\Property(property: "due_date", type: "string", format: "date", example: "2023-11-01", description: "Must be today or in the future"),
-                    new OA\Property(property: "delivery_date", type: "string", format: "date", nullable: true, description: "Must be after or equal to due date"),
-                    new OA\Property(property: "notes", type: "string", maxLength: 2000, nullable: true)
+                    new OA\Property(property: "details", type: "object", nullable: true, example: ["fabric" => "cotton", "color" => "blue"], description: "Free-form key-value details about the garment"),
+                    new OA\Property(property: "style_description", type: "string", maxLength: 2000, nullable: true, example: "Elegant evening gown"),
+                    new OA\Property(property: "total_amount", type: "number", format: "float", minimum: 0, example: 25000),
+                    new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"], default: "NGN", example: "NGN"),
+                    new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"], default: "pending_payment"),
+                    new OA\Property(property: "due_date", type: "string", format: "date", example: "2025-07-20", description: "Must be today or in the future"),
+                    new OA\Property(property: "delivery_date", type: "string", format: "date", nullable: true, description: "Must be on or after due date"),
+                    new OA\Property(property: "notes", type: "string", maxLength: 2000, nullable: true, example: "Rush order for wedding"),
+                    new OA\Property(property: "deposit", type: "number", format: "float", nullable: true, minimum: 0, example: 5000, description: "Optional upfront deposit — recorded as an initial payment via cash")
                 ]
             )
         ),
@@ -108,10 +114,10 @@ class OrderDocs
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "title", type: "string", maxLength: 255, example: "Custom Wedding Suit V2"),
-                    new OA\Property(property: "description", type: "string", maxLength: 2000),
-                    new OA\Property(property: "quantity", type: "integer", minimum: 1),
+                    new OA\Property(property: "details", type: "object", nullable: true, example: ["fabric" => "linen", "color" => "navy"]),
+                    new OA\Property(property: "style_description", type: "string", maxLength: 2000, nullable: true),
                     new OA\Property(property: "total_amount", type: "number", format: "float", minimum: 0),
+                    new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"]),
                     new OA\Property(property: "due_date", type: "string", format: "date"),
                     new OA\Property(property: "delivery_date", type: "string", format: "date"),
                     new OA\Property(property: "notes", type: "string", maxLength: 2000)
@@ -142,7 +148,7 @@ class OrderDocs
             content: new OA\JsonContent(
                 required: ["status"],
                 properties: [
-                    new OA\Property(property: "status", type: "string", enum: ["pending", "in_progress", "completed", "delivered", "cancelled"], example: "in_progress")
+                    new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"], example: "in_progress")
                 ]
             )
         ),

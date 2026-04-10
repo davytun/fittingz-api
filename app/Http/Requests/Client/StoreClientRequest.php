@@ -3,8 +3,8 @@
 namespace App\Http\Requests\Client;
 
 use App\Http\Requests\BaseRequest;
-use App\Rules\ClientContactRequired;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreClientRequest extends BaseRequest
 {
@@ -18,15 +18,14 @@ class StoreClientRequest extends BaseRequest
         $userId = $this->user()->id;
 
         return [
-            'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => [
+            'name'   => ['required', 'string', 'min:2', 'max:255'],
+            'email'  => [
                 'nullable',
                 'email',
                 'max:255',
                 Rule::unique('clients', 'email')->where('user_id', $userId),
-                new ClientContactRequired,
             ],
-            'phone' => [
+            'phone'  => [
                 'nullable',
                 'string',
                 'regex:/^[0-9+\-\s()]+$/',
@@ -34,22 +33,33 @@ class StoreClientRequest extends BaseRequest
                 'max:20',
                 Rule::unique('clients', 'phone')->where('user_id', $userId),
             ],
-            'gender' => ['required', Rule::in(['Male', 'Female', 'Other'])],
+            'gender' => ['nullable', Rule::in(['Male', 'Female', 'Other'])],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $email = $this->input('email');
+            $phone = $this->input('phone');
+
+            if (empty($email) && empty($phone)) {
+                $validator->errors()->add('email', 'At least one contact method (email or phone) is required.');
+            }
+        });
     }
 
     public function messages(): array
     {
         return [
-            'name.required' => 'Client name is required',
-            'name.min' => 'Client name must be at least 2 characters',
-            'email.email' => 'Please provide a valid email address',
-            'email.unique' => 'A client with this email already exists',
-            'phone.regex' => 'Please provide a valid phone number',
-            'phone.min' => 'Phone number must be at least 10 characters',
-            'phone.unique' => 'A client with this phone number already exists',
-            'gender.required' => 'Gender is required',
-            'gender.in' => 'Gender must be Male, Female, or Other',
+            'name.required'  => 'Client name is required',
+            'name.min'       => 'Client name must be at least 2 characters',
+            'email.email'    => 'Please provide a valid email address',
+            'email.unique'   => 'A client with this email already exists',
+            'phone.regex'    => 'Please provide a valid phone number',
+            'phone.min'      => 'Phone number must be at least 10 characters',
+            'phone.unique'   => 'A client with this phone number already exists',
+            'gender.in'      => 'Gender must be Male, Female, or Other',
         ];
     }
 

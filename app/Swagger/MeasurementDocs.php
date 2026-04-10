@@ -19,10 +19,15 @@ class MeasurementDocs
                 new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "id", type: "string", format: "uuid"),
-                    new OA\Property(property: "measurements", type: "object", example: ["chest" => 40, "waist" => 34]),
+                    new OA\Property(property: "client_id", type: "string", format: "uuid"),
+                    new OA\Property(property: "name", type: "string", example: "Pants Measurement"),
+                    new OA\Property(property: "fields", type: "object", example: ["waist" => "32", "inseam" => "30", "thigh" => "22"]),
                     new OA\Property(property: "unit", type: "string", enum: ["cm", "inches"]),
+                    new OA\Property(property: "notes", type: "string", nullable: true),
                     new OA\Property(property: "is_default", type: "boolean"),
-                    new OA\Property(property: "measurement_date", type: "string", format: "date")
+                    new OA\Property(property: "measurement_date", type: "string", format: "date"),
+                    new OA\Property(property: "created_at", type: "string", format: "date-time"),
+                    new OA\Property(property: "updated_at", type: "string", format: "date-time")
                 ]))
             ])),
             new OA\Response(response: 401, description: "Unauthenticated"),
@@ -43,12 +48,14 @@ class MeasurementDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["measurements", "unit", "measurement_date"],
+                required: ["name", "fields", "unit", "measurement_date"],
                 properties: [
-                    new OA\Property(property: "measurements", type: "object", minProperties: 1, example: ["shoulder" => 18, "chest" => 42, "sleeve" => 25], description: "Key-value pairs of body parts and their measurements"),
+                    new OA\Property(property: "name", type: "string", maxLength: 255, example: "Pants Measurement"),
+                    new OA\Property(property: "fields", type: "object", minProperties: 1, example: ["waist" => "32", "inseam" => "30", "thigh" => "22"], description: "Key-value pairs of body parts and their measurements"),
                     new OA\Property(property: "unit", type: "string", enum: ["cm", "inches"], example: "inches"),
-                    new OA\Property(property: "notes", type: "string", maxLength: 1000, example: "Client prefers a loose fit around the shoulders", nullable: true),
-                    new OA\Property(property: "measurement_date", type: "string", format: "date", example: "2023-10-25", description: "Cannot be in the future")
+                    new OA\Property(property: "notes", type: "string", maxLength: 1000, example: "Client prefers a loose fit", nullable: true),
+                    new OA\Property(property: "measurement_date", type: "string", format: "date", example: "2026-04-10", description: "Cannot be in the future"),
+                    new OA\Property(property: "is_default", type: "boolean", example: false, nullable: true, description: "Set as default measurement for this client")
                 ]
             )
         ),
@@ -93,10 +100,12 @@ class MeasurementDocs
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "measurements", type: "object", minProperties: 1, example: ["shoulder" => 18.5, "chest" => 42]),
+                    new OA\Property(property: "name", type: "string", maxLength: 255, example: "Pants Measurement"),
+                    new OA\Property(property: "fields", type: "object", minProperties: 1, example: ["waist" => "34", "inseam" => "30"], description: "Pass null for a key to remove it"),
                     new OA\Property(property: "unit", type: "string", enum: ["cm", "inches"], example: "inches"),
                     new OA\Property(property: "notes", type: "string", maxLength: 1000, nullable: true),
-                    new OA\Property(property: "measurement_date", type: "string", format: "date")
+                    new OA\Property(property: "measurement_date", type: "string", format: "date"),
+                    new OA\Property(property: "is_default", type: "boolean", example: false, nullable: true)
                 ]
             )
         ),

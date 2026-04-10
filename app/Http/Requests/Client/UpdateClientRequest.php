@@ -37,7 +37,7 @@ class UpdateClientRequest extends BaseRequest
                     ->where('user_id', $userId)
                     ->ignore($clientId),
             ],
-            'gender' => ['sometimes', 'required', Rule::in(['Male', 'Female', 'Other'])],
+            'gender' => ['nullable', Rule::in(['Male', 'Female', 'Other'])],
         ];
     }
 

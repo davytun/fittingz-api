@@ -17,44 +17,48 @@ class StoreMeasurementRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'measurements' => ['required', 'array', 'min:1', new ValidMeasurementKeys()],
-            'measurements.*' => ['required', new ValidMeasurementValue()],
-            'unit' => ['required', Rule::in(['cm', 'inches'])],
-            'notes' => ['nullable', 'string', 'max:1000'],
+            'name'             => ['required', 'string', 'max:255'],
+            'fields'           => ['required', 'array', 'min:1', new ValidMeasurementKeys()],
+            'fields.*'         => ['required', new ValidMeasurementValue()],
+            'unit'             => ['required', Rule::in(['cm', 'inches'])],
+            'notes'            => ['nullable', 'string', 'max:1000'],
             'measurement_date' => ['required', 'date', 'before_or_equal:today'],
+            'is_default'       => ['boolean'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'measurements.required' => 'Measurements are required',
-            'measurements.array' => 'Measurements must be a valid object',
-            'measurements.min' => 'At least one measurement field is required',
-            'measurements.*.required' => 'All measurement values are required',
-            'unit.required' => 'Measurement unit is required',
-            'unit.in' => 'Unit must be either cm or inches',
-            'measurement_date.required' => 'Measurement date is required',
-            'measurement_date.date' => 'Invalid date format',
+            'name.required'                => 'Measurement name is required',
+            'fields.required'              => 'Measurement fields are required',
+            'fields.array'                 => 'Fields must be a valid object',
+            'fields.min'                   => 'At least one measurement field is required',
+            'fields.*.required'            => 'All measurement values are required',
+            'unit.required'                => 'Measurement unit is required',
+            'unit.in'                      => 'Unit must be either cm or inches',
+            'measurement_date.required'    => 'Measurement date is required',
+            'measurement_date.date'        => 'Invalid date format',
             'measurement_date.before_or_equal' => 'Measurement date cannot be in the future',
         ];
     }
 
     protected function prepareForValidation()
     {
-        $measurements = $this->measurements;
-        
-        if (is_array($measurements)) {
+        $fields = $this->fields;
+
+        if (is_array($fields)) {
             $sanitized = [];
-            foreach ($measurements as $key => $value) {
+            foreach ($fields as $key => $value) {
                 $sanitizedKey = trim(strtolower(str_replace(' ', '_', $key)));
                 $sanitizedValue = is_string($value) ? trim($value) : $value;
                 $sanitized[$sanitizedKey] = $sanitizedValue;
             }
-            
+
             $this->merge([
-                'measurements' => $sanitized,
-                'notes' => $this->notes ? trim($this->notes) : null,
+                'fields' => $sanitized,
+                'notes'  => $this->notes ? trim($this->notes) : null,
+                'name'   => $this->name ? trim($this->name) : $this->name,
             ]);
         }
     }

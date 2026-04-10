@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Currency;
 use App\Enums\OrderStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,10 +23,11 @@ class Order extends Model
         'client_id',
         'measurement_id',
         'order_number',
-        'title',
         'description',
-        'quantity',
+        'details',
+        'style_description',
         'total_amount',
+        'currency',
         'status',
         'due_date',
         'delivery_date',
@@ -35,10 +37,11 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'status' => OrderStatus::class,
+            'status'       => OrderStatus::class,
+            'currency'     => Currency::class,
             'total_amount' => 'decimal:2',
-            'quantity' => 'integer',
-            'due_date' => 'date',
+            'details'      => 'array',
+            'due_date'     => 'date',
             'delivery_date' => 'date',
         ];
     }

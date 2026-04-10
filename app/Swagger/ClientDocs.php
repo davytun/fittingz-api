@@ -45,12 +45,12 @@ class ClientDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "gender"],
+                required: ["name"],
                 properties: [
                     new OA\Property(property: "name", type: "string", minLength: 2, maxLength: 255, example: "Jane Smith"),
-                    new OA\Property(property: "email", type: "string", format: "email", maxLength: 255, example: "jane.smith@example.com", description: "Must be unique. Required if phone is missing."),
-                    new OA\Property(property: "phone", type: "string", minLength: 10, maxLength: 20, example: "+1234567890", description: "Must be unique. Required if email is missing."),
-                    new OA\Property(property: "gender", type: "string", enum: ["Male", "Female", "Other"], example: "Female")
+                    new OA\Property(property: "email", type: "string", format: "email", maxLength: 255, example: "jane.smith@example.com", nullable: true, description: "Must be unique. Required if phone is not provided."),
+                    new OA\Property(property: "phone", type: "string", minLength: 10, maxLength: 20, example: "+1234567890", nullable: true, description: "Must be unique. Required if email is not provided."),
+                    new OA\Property(property: "gender", type: "string", enum: ["Male", "Female", "Other"], example: "Female", nullable: true, description: "Optional.")
                 ]
             )
         ),
