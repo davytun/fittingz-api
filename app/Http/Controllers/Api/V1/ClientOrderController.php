@@ -37,7 +37,7 @@ class ClientOrderController extends Controller
             });
         }
 
-        if ($request->has('start_date') || $request->has('end_date')) {
+        if ($request->filled('start_date') || $request->filled('end_date')) {
             $dateValidation = Validator::make($request->only('start_date', 'end_date'), [
                 'start_date' => ['nullable', 'date'],
                 'end_date'   => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -47,11 +47,11 @@ class ClientOrderController extends Controller
                 return ApiResponse::error('Invalid date filters.', $dateValidation->errors(), 422);
             }
 
-            if ($request->has('start_date')) {
+            if ($request->filled('start_date')) {
                 $query->whereDate('created_at', '>=', Carbon::parse($request->start_date));
             }
 
-            if ($request->has('end_date')) {
+            if ($request->filled('end_date')) {
                 $query->whereDate('created_at', '<=', Carbon::parse($request->end_date));
             }
         }

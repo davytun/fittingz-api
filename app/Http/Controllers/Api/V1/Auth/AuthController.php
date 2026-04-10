@@ -200,7 +200,7 @@ class AuthController extends Controller
         }
 
         if (! $user->verification_code_expires_at || $user->verification_code_expires_at->isPast()) {
-            return ApiResponse::error('Verification code has expired. Please request a new one.', null, 400);
+            return ApiResponse::error('Invalid email or verification code.', null, 400);
         }
 
         if ($user->verification_code !== $request->code) {
@@ -221,7 +221,7 @@ class AuthController extends Controller
         $user = User::where('email', strtolower(trim($request->email)))->first();
 
         if (! $user) {
-            return ApiResponse::error('No account found with this email address.', null, 404);
+            return ApiResponse::success('If an account exists for this email, a verification code has been sent.');
         }
 
         if ($user->hasVerifiedEmail()) {
@@ -239,23 +239,21 @@ class AuthController extends Controller
         $email = strtolower(trim($request->email));
         $user = User::where('email', $email)->first();
 
-        if (! $user) {
-            return ApiResponse::error('No account found with this email address.', null, 404);
+        if ($user) {
+            $token = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $email],
+                [
+                    'token'      => Hash::make($token),
+                    'created_at' => now(),
+                ]
+            );
+
+            $user->notify(new PasswordResetNotification($token));
         }
 
-        $token = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
-
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $email],
-            [
-                'token'      => Hash::make($token),
-                'created_at' => now(),
-            ]
-        );
-
-        $user->notify(new PasswordResetNotification($token));
-
-        return ApiResponse::success('Password reset code sent to your email.');
+        return ApiResponse::success('If an account exists for this email, a password reset code has been sent.');
     }
 
     public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse

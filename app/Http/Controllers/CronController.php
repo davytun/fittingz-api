@@ -11,7 +11,8 @@ class CronController extends Controller
 {
     public function processQueue(string $secret): JsonResponse
     {
-        if (! hash_equals((string) config('app.cron_secret'), (string) $secret)) {
+        $configured = (string) config('app.cron_secret');
+        if ($configured === '' || ! hash_equals($configured, (string) $secret)) {
             return ApiResponse::error('Unauthorized.', null, 403);
         }
 
@@ -26,7 +27,8 @@ class CronController extends Controller
 
     public function runCommand(string $secret, string $command): JsonResponse
     {
-        if (! hash_equals((string) config('app.cron_secret'), (string) $secret)) {
+        $configured = (string) config('app.cron_secret');
+        if ($configured === '' || ! hash_equals($configured, (string) $secret)) {
             return ApiResponse::error('Unauthorized.', null, 403);
         }
 

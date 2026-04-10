@@ -53,7 +53,7 @@ class AuthDocs
                 required: ["email", "code"],
                 properties: [
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    new OA\Property(property: "code", type: "integer", example: 1234, description: "4-digit verification code sent to the email address")
+                    new OA\Property(property: "code", type: "string", example: "0123", minLength: 4, maxLength: 4, pattern: "^\d{4}$", description: "4-digit verification code sent to the email address")
                 ]
             )
         ),
@@ -117,9 +117,8 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Verification code sent"),
+            new OA\Response(response: 200, description: "Verification code sent (or generic success if email not found, to prevent enumeration)"),
             new OA\Response(response: 400, description: "Email already verified"),
-            new OA\Response(response: 404, description: "No account found with this email address"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -139,8 +138,7 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Password reset code sent to email"),
-            new OA\Response(response: 404, description: "No account found with this email address"),
+            new OA\Response(response: 200, description: "Generic success response (reset code sent if account exists; email not found is not disclosed to prevent enumeration)"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -156,7 +154,7 @@ class AuthDocs
                 required: ["email", "token"],
                 properties: [
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    new OA\Property(property: "token", type: "integer", example: 1234, description: "4-digit reset code sent to the email address")
+                    new OA\Property(property: "token", type: "string", example: "0123", minLength: 4, maxLength: 4, pattern: "^\d{4}$", description: "4-digit reset code sent to the email address")
                 ]
             )
         ),
@@ -178,7 +176,7 @@ class AuthDocs
                 required: ["email", "token", "password", "password_confirmation"],
                 properties: [
                     new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com"),
-                    new OA\Property(property: "token", type: "integer", example: 1234, description: "4-digit reset code sent to the email address"),
+                    new OA\Property(property: "token", type: "string", example: "0123", minLength: 4, maxLength: 4, pattern: "^\d{4}$", description: "4-digit reset code sent to the email address"),
                     new OA\Property(property: "password", type: "string", format: "password", minLength: 8),
                     new OA\Property(property: "password_confirmation", type: "string", format: "password")
                 ]

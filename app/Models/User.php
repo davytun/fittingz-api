@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'locked_until',
         'verification_code',
         'verification_code_expires_at',
+        'email_notifications',
     ];
 
     protected $hidden = [
@@ -53,6 +54,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password'                       => 'hashed',
             'locked_until'                   => 'datetime',
             'verification_code_expires_at'   => 'datetime',
+            'email_notifications'            => 'boolean',
         ];
     }
 

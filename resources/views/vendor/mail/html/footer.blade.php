@@ -5,7 +5,7 @@
 <td class="content-cell" align="left" style="padding: 0; text-align: left;">
     <p style="color: #ffffff; font-size: 14px; margin: 0 0 32px 0; line-height: 1.6; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
         This email was sent to <a href="mailto:{{ $notifiable->email ?? 'you' }}" style="color: #ffffff; text-decoration: underline;">{{ $notifiable->email ?? 'you' }}</a>.
-        Don't want any more emails from Fittingz? <a href="{{ config('app.url') }}/unsubscribe" style="color: #ffffff; text-decoration: underline;">Unsubscribe</a>.
+        Don't want any more emails from Fittingz? <a href="{{ URL::signedRoute('unsubscribe', ['userId' => $notifiable->id ?? '']) }}" style="color: #ffffff; text-decoration: underline;">Unsubscribe</a>.
     </p>
 
     <table cellpadding="0" cellspacing="0" role="presentation" width="100%">

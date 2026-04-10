@@ -71,7 +71,7 @@ class OrderDocs
             new OA\Response(response: 201, description: "Order created successfully"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Client not found"),
+            new OA\Response(response: 404, description: "Client or measurement not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -178,7 +178,7 @@ class OrderDocs
             new OA\Response(response: 200, description: "Order measurement updated successfully"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
-            new OA\Response(response: 404, description: "Order not found"),
+            new OA\Response(response: 404, description: "Order or measurement not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
