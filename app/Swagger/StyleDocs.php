@@ -13,7 +13,8 @@ class StyleDocs
         security: [["bearerAuth" => []]],
         parameters: [
             new OA\Parameter(name: "search", in: "query", description: "Search by title, description, or category", required: false, schema: new OA\Schema(type: "string")),
-            new OA\Parameter(name: "category", in: "query", description: "Filter by category", required: false, schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "category", in: "query", description: "Filter by category (case-insensitive)", required: false, schema: new OA\Schema(type: "string")),
+            new OA\Parameter(name: "tag", in: "query", description: "Filter by tag (case-insensitive, matches any tag in the tags array)", required: false, schema: new OA\Schema(type: "string")),
             new OA\Parameter(name: "page", in: "query", description: "Page number", required: false, schema: new OA\Schema(type: "integer", default: 1))
         ],
         responses: [
@@ -27,7 +28,8 @@ class StyleDocs
                     new OA\Property(property: "tags", type: "array", items: new OA\Items(type: "string"))
                 ])),
                 new OA\Property(property: "meta", type: "object")
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated")
         ]
     )]
     public function index() {}
@@ -55,6 +57,7 @@ class StyleDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "Style uploaded successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -70,6 +73,7 @@ class StyleDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Style retrieved successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 404, description: "Style not found")
         ]
     )]
@@ -100,6 +104,8 @@ class StyleDocs
         ),
         responses: [
             new OA\Response(response: 200, description: "Style metadata updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 404, description: "Style not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -115,7 +121,9 @@ class StyleDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Style deleted successfully"),
-            new OA\Response(response: 404, description: "Style not found")
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 404, description: "Style not found"),
+            new OA\Response(response: 409, description: "Cannot delete — style is linked to one or more orders")
         ]
     )]
     public function destroy() {}

@@ -30,7 +30,10 @@ class PaymentDocs
                     new OA\Property(property: "reference", type: "string", nullable: true)
                 ])),
                 new OA\Property(property: "meta", type: "object")
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function index() {}
@@ -59,7 +62,10 @@ class PaymentDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "Payment recorded successfully"),
-            new OA\Response(response: 422, description: "Validation error (e.g., amount exceeds balance)")
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client, order, or payment not found"),
+            new OA\Response(response: 422, description: "Validation error — including amount exceeding outstanding balance")
         ]
     )]
     public function store() {}
@@ -76,7 +82,9 @@ class PaymentDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Payment retrieved successfully"),
-            new OA\Response(response: 404, description: "Payment not found")
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function show() {}
@@ -93,7 +101,9 @@ class PaymentDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Payment deleted successfully"),
-            new OA\Response(response: 404, description: "Payment not found")
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client, order, or payment not found")
         ]
     )]
     public function destroy() {}

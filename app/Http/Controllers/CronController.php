@@ -4,15 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class CronController extends Controller
 {
     public function processQueue(string $secret): JsonResponse
     {
-        if ($secret !== config('app.cron_secret')) {
-            return ApiResponse::error('Unauthorized', null, 403);
+        $configured = (string) config('app.cron_secret');
+        if ($configured === '' || ! hash_equals($configured, (string) $secret)) {
+            return ApiResponse::error('Unauthorized.', null, 403);
         }
 
         Artisan::call('queue:work', [
@@ -26,29 +27,34 @@ class CronController extends Controller
 
     public function runCommand(string $secret, string $command): JsonResponse
     {
-        if ($secret !== config('app.cron_secret')) {
-            return ApiResponse::error('Unauthorized', null, 403);
+        $configured = (string) config('app.cron_secret');
+        if ($configured === '' || ! hash_equals($configured, (string) $secret)) {
+            return ApiResponse::error('Unauthorized.', null, 403);
         }
 
+        // 'migrate' is intentionally excluded — run migrations via SSH/CI only.
         $allowedCommands = [
-            'migrate' => 'migrate --force',
-            'storage-link' => 'storage:link',
-            'optimize' => 'optimize',
-            'cache-clear' => 'cache:clear',
-            'route-clear' => 'route:clear',
-            'config-clear' => 'config:clear',
+            'storage-link' => ['storage:link', []],
+            'optimize'     => ['optimize', []],
+            'cache-clear'  => ['cache:clear', []],
+            'route-clear'  => ['route:clear', []],
+            'config-clear' => ['config:clear', []],
         ];
 
-        if (!isset($allowedCommands[$command])) {
-            return ApiResponse::error('Command not allowed', null, 400);
+        if (! isset($allowedCommands[$command])) {
+            return ApiResponse::error('Command not allowed.', null, 400);
         }
 
         try {
-            Artisan::call($allowedCommands[$command]);
+            [$artisanCommand, $args] = $allowedCommands[$command];
+            Artisan::call($artisanCommand, $args);
             $output = Artisan::output();
+
             return ApiResponse::success("Command executed: {$command}", ['output' => $output]);
         } catch (\Exception $e) {
-            return ApiResponse::error('Command failed: ' . $e->getMessage(), null, 500);
+            Log::error("Cron command failed: {$command}", ['exception' => $e]);
+
+            return ApiResponse::error('Command failed.', null, 500);
         }
     }
 }

@@ -22,6 +22,7 @@ class OrderDocs
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
+                new OA\Property(property: "message", type: "string", example: "Orders retrieved successfully"),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "id", type: "string", format: "uuid"),
                     new OA\Property(property: "title", type: "string"),
@@ -32,7 +33,11 @@ class OrderDocs
                     new OA\Property(property: "due_date", type: "string", format: "date", nullable: true)
                 ])),
                 new OA\Property(property: "meta", type: "object")
-            ]))
+            ])),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client not found"),
+            new OA\Response(response: 422, description: "Invalid date filters")
         ]
     )]
     public function index() {}
@@ -64,6 +69,9 @@ class OrderDocs
         ),
         responses: [
             new OA\Response(response: 201, description: "Order created successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Client or measurement not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -80,6 +88,8 @@ class OrderDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Order retrieved successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Order not found")
         ]
     )]
@@ -110,6 +120,9 @@ class OrderDocs
         ),
         responses: [
             new OA\Response(response: 200, description: "Order updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order not found"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -134,7 +147,11 @@ class OrderDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Order status updated successfully")
+            new OA\Response(response: 200, description: "Order status updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order not found"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function updateStatus() {}
@@ -158,7 +175,11 @@ class OrderDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Order measurement updated successfully")
+            new OA\Response(response: 200, description: "Order measurement updated successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order or measurement not found"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function updateMeasurement() {}
@@ -173,7 +194,10 @@ class OrderDocs
             new OA\Parameter(name: "order", in: "path", description: "Order UUID", required: true, schema: new OA\Schema(type: "string", format: "uuid"))
         ],
         responses: [
-            new OA\Response(response: 200, description: "Order deleted successfully")
+            new OA\Response(response: 200, description: "Order deleted successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order not found")
         ]
     )]
     public function destroy() {}
@@ -197,7 +221,11 @@ class OrderDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Style attached successfully")
+            new OA\Response(response: 201, description: "Style linked to order successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order or style not found"),
+            new OA\Response(response: 422, description: "Validation error")
         ]
     )]
     public function stylesAttach() {}
@@ -213,7 +241,10 @@ class OrderDocs
             new OA\Parameter(name: "style", in: "path", description: "Style UUID", required: true, schema: new OA\Schema(type: "string", format: "uuid"))
         ],
         responses: [
-            new OA\Response(response: 200, description: "Style detached successfully")
+            new OA\Response(response: 200, description: "Style unlinked from order successfully"),
+            new OA\Response(response: 401, description: "Unauthenticated"),
+            new OA\Response(response: 403, description: "Unauthorized"),
+            new OA\Response(response: 404, description: "Order, style, or link not found")
         ]
     )]
     public function stylesDetach() {}

@@ -21,6 +21,10 @@ class OrderPaymentController extends Controller
 
     public function index(Request $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('viewAny', [Payment::class, $order]);
 
         $query = $order->payments()->with(['order.client']);
@@ -49,6 +53,10 @@ class OrderPaymentController extends Controller
 
     public function store(StorePaymentRequest $request, Client $client, Order $order): JsonResponse
     {
+        if ($order->client_id !== $client->id) {
+            abort(404);
+        }
+
         $this->authorize('create', [Payment::class, $order]);
 
         $payment = $this->paymentService->recordPayment($order, [
@@ -71,6 +79,10 @@ class OrderPaymentController extends Controller
 
     public function show(Client $client, Order $order, Payment $payment): JsonResponse
     {
+        if ($order->client_id !== $client->id || $payment->order_id !== $order->id) {
+            abort(404);
+        }
+
         $this->authorize('view', $payment);
 
         $payment->load(['order.client']);
@@ -83,6 +95,10 @@ class OrderPaymentController extends Controller
 
     public function destroy(Client $client, Order $order, Payment $payment): JsonResponse
     {
+        if ($order->client_id !== $client->id || $payment->order_id !== $order->id) {
+            abort(404);
+        }
+
         $this->authorize('delete', $payment);
 
         $this->paymentService->deletePayment($payment);

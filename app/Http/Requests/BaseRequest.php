@@ -19,7 +19,7 @@ abstract class BaseRequest extends FormRequest
     protected function failedAuthorization()
     {
         throw new HttpResponseException(
-            ApiResponse::error('Unauthorized action', null, 403)
+            ApiResponse::error('This action is unauthorized.', null, 403)
         );
     }
 }

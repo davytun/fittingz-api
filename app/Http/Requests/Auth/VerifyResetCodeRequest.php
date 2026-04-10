@@ -14,8 +14,8 @@ class VerifyResetCodeRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
-            'token' => ['required', 'string', 'size:4'],
+            'email' => ['required', 'email'],
+            'token' => ['required', 'digits:4'],
         ];
     }
 
@@ -23,10 +23,9 @@ class VerifyResetCodeRequest extends BaseRequest
     {
         return [
             'email.required' => 'Email address is required',
-            'email.email' => 'Please provide a valid email address',
-            'email.exists' => 'No account found with this email address',
+            'email.email'    => 'Please provide a valid email address',
             'token.required' => 'Reset code is required',
-            'token.size' => 'Reset code must be 4 digits',
+            'token.digits'   => 'Reset code must be 4 digits',
         ];
     }
 }

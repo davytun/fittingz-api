@@ -14,8 +14,8 @@ class ResetPasswordRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'exists:users,email'],
-            'token' => ['required', 'string', 'size:4'],
+            'email' => ['required', 'email'],
+            'token' => ['required', 'digits:4'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
@@ -24,10 +24,9 @@ class ResetPasswordRequest extends BaseRequest
     {
         return [
             'email.required' => 'Email address is required',
-            'email.email' => 'Please provide a valid email address',
-            'email.exists' => 'No account found with this email address',
+            'email.email'    => 'Please provide a valid email address',
             'token.required' => 'Reset code is required',
-            'token.size' => 'Reset code must be 4 digits',
+            'token.digits'   => 'Reset code must be 4 digits',
             'password.required' => 'Password is required',
             'password.min' => 'Password must be at least 8 characters',
             'password.confirmed' => 'Password confirmation does not match',

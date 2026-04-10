@@ -13,10 +13,21 @@ class CheckTokenExpiration
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->user()->currentAccessToken();
-        $createdAt = $token?->created_at;
+        $user = $request->user();
 
-        if ($token && $createdAt instanceof CarbonInterface && $createdAt->copy()->addDays(7)->isPast()) {
+        if (! $user) {
+            return $next($request);
+        }
+
+        $token = $user->currentAccessToken();
+
+        if (! $token) {
+            return $next($request);
+        }
+
+        $createdAt = $token->created_at;
+
+        if ($createdAt instanceof CarbonInterface && $createdAt->copy()->addDays(7)->isPast()) {
             if ($token instanceof PersonalAccessToken) {
                 $token->delete();
             }

@@ -8,7 +8,7 @@ h1, .h1 {
     margin-bottom: 24px;
     text-align: left;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    letter-spacing: -0.3px;
+    letter-spacing: 0px;
 }
 
 p, .p {
@@ -23,6 +23,7 @@ p, .p {
 
 a {
     color: #0f4c75;
+    text-decoration: underline;
 }
 
 img {
