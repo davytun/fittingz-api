@@ -39,6 +39,7 @@ Set these in the Laravel Cloud environment settings instead of copying the local
 ### Session / Sanctum / Frontend
 
 - [ ] Set `SESSION_DOMAIN` correctly for your production domain.
+- [ ] Set `SESSION_DRIVER` to a production-safe backend such as `database`, `redis`, `cookie`, or `file` depending on deployment topology.
 - [ ] Set `SANCTUM_STATEFUL_DOMAINS` if the frontend runs on a different domain or subdomain.
 - [ ] Add any frontend origin or CORS-related variables used by the client application.
 
@@ -116,7 +117,7 @@ php artisan migrate --force
 - [ ] Test registration
 - [ ] Test login
 - [ ] Test email verification
-- [ ] Test password reset
+~ - [ ] Test password reset
 - [ ] Test authenticated API requests
 - [ ] Test client creation
 - [ ] Test nested measurement, order, and payment flows

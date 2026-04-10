@@ -73,6 +73,7 @@ class DashboardController extends Controller
                 ],
                 'orders' => [
                     'total' => $totalOrders,
+                    'pending' => $ordersByStatus['pending_payment'] ?? 0,
                     'pending_payment' => $ordersByStatus['pending_payment'] ?? 0,
                     'in_progress' => $ordersByStatus['in_progress'] ?? 0,
                     'completed' => $ordersByStatus['completed'] ?? 0,

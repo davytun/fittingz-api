@@ -60,7 +60,7 @@ class AuthDocs
         responses: [
             new OA\Response(response: 200, description: "Email verified successfully", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Email verified successfully."),
+                new OA\Property(property: "message", type: "string", example: "Email verified successfully. You can now log in."),
                 new OA\Property(property: "data", type: "object", nullable: true)
             ])),
             new OA\Response(response: 400, description: "Invalid or expired verification code"),
@@ -86,19 +86,24 @@ class AuthDocs
         responses: [
             new OA\Response(response: 200, description: "Login successful", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Login successful."),
+                new OA\Property(property: "message", type: "string", example: "Login successful"),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "user", type: "object", properties: [
                         new OA\Property(property: "id", type: "string", format: "uuid"),
                         new OA\Property(property: "business_name", type: "string"),
                         new OA\Property(property: "email", type: "string")
                     ]),
-                    new OA\Property(property: "token", type: "string", description: "Bearer token for authenticated requests")
+                    new OA\Property(property: "token", type: "string", description: "Bearer token for authenticated requests"),
+                    new OA\Property(property: "token_type", type: "string", example: "Bearer"),
+                    new OA\Property(property: "expires_in", type: "object", properties: [
+                        new OA\Property(property: "minutes", type: "integer", example: 10080),
+                        new OA\Property(property: "days", type: "integer", example: 7)
+                    ])
                 ])
             ])),
             new OA\Response(response: 401, description: "Invalid email or password"),
-            new OA\Response(response: 403, description: "Account locked due to too many failed attempts"),
-            new OA\Response(response: 422, description: "Email not yet verified")
+            new OA\Response(response: 403, description: "Email not yet verified"),
+            new OA\Response(response: 423, description: "Account locked due to too many failed attempts")
         ]
     )]
     public function login() {}
@@ -117,7 +122,8 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Verification code sent (or generic success if email not found or already verified, to prevent enumeration)"),
+            new OA\Response(response: 200, description: "Verification code sent or generic success if the account does not exist"),
+            new OA\Response(response: 400, description: "This email address is already verified"),
             new OA\Response(response: 422, description: "Validation error")
         ]
     )]
@@ -209,9 +215,13 @@ class AuthDocs
         responses: [
             new OA\Response(response: 200, description: "Token refreshed successfully", content: new OA\JsonContent(properties: [
                 new OA\Property(property: "success", type: "boolean", example: true),
-                new OA\Property(property: "message", type: "string", example: "Token refreshed successfully."),
+                new OA\Property(property: "message", type: "string", example: "Token refreshed successfully"),
                 new OA\Property(property: "data", type: "object", properties: [
-                    new OA\Property(property: "token", type: "string", description: "New bearer token")
+                    new OA\Property(property: "token", type: "string", description: "New bearer token"),
+                    new OA\Property(property: "expires_in", type: "object", properties: [
+                        new OA\Property(property: "minutes", type: "integer", example: 10080),
+                        new OA\Property(property: "days", type: "integer", example: 7)
+                    ])
                 ])
             ])),
             new OA\Response(response: 401, description: "Unauthenticated")
@@ -236,7 +246,13 @@ class AuthDocs
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Password changed successfully"),
+            new OA\Response(response: 200, description: "Password changed successfully", content: new OA\JsonContent(properties: [
+                new OA\Property(property: "success", type: "boolean", example: true),
+                new OA\Property(property: "message", type: "string", example: "Password changed successfully"),
+                new OA\Property(property: "data", type: "object", properties: [
+                    new OA\Property(property: "token", type: "string", description: "New bearer token")
+                ])
+            ])),
             new OA\Response(response: 400, description: "Current password is incorrect"),
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 422, description: "Validation error")

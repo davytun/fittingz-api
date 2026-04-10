@@ -114,7 +114,7 @@ class MeasurementDocs
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Measurement not found"),
-            new OA\Response(response: 422, description: "Validation error — including attempt to remove all measurements")
+            new OA\Response(response: 422, description: "Validation error including attempt to remove all measurements")
         ]
     )]
     public function update() {}

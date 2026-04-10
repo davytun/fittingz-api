@@ -53,7 +53,7 @@ class PaymentDocs
                 required: ["amount", "payment_date", "payment_method"],
                 properties: [
                     new OA\Property(property: "amount", type: "number", format: "float", minimum: 0.01, maximum: 99999999.99, example: 100.50, description: "Cannot exceed the outstanding balance of the order"),
-                    new OA\Property(property: "payment_date", type: "string", format: "date", example: "2023-10-25", description: "Cannot be in the future"),
+                    new OA\Property(property: "payment_date", type: "string", format: "date", example: "2026-04-10", description: "Cannot be in the future"),
                     new OA\Property(property: "payment_method", type: "string", enum: ["cash", "bank_transfer", "pos", "other"], example: "bank_transfer"),
                     new OA\Property(property: "reference", type: "string", maxLength: 255, nullable: true, example: "TXN123456789"),
                     new OA\Property(property: "notes", type: "string", maxLength: 1000, nullable: true)
@@ -65,7 +65,7 @@ class PaymentDocs
             new OA\Response(response: 401, description: "Unauthenticated"),
             new OA\Response(response: 403, description: "Unauthorized"),
             new OA\Response(response: 404, description: "Client, order, or payment not found"),
-            new OA\Response(response: 422, description: "Validation error — including amount exceeding outstanding balance")
+            new OA\Response(response: 422, description: "Validation error including amount exceeding outstanding balance")
         ]
     )]
     public function store() {}
