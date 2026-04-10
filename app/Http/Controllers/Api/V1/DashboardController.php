@@ -73,7 +73,7 @@ class DashboardController extends Controller
                 ],
                 'orders' => [
                     'total' => $totalOrders,
-                    'pending' => $ordersByStatus['pending'] ?? 0,
+                    'pending_payment' => $ordersByStatus['pending_payment'] ?? 0,
                     'in_progress' => $ordersByStatus['in_progress'] ?? 0,
                     'completed' => $ordersByStatus['completed'] ?? 0,
                     'delivered' => $ordersByStatus['delivered'] ?? 0,
@@ -143,7 +143,7 @@ class DashboardController extends Controller
             ->whereNotNull('due_date')
             ->whereDate('due_date', '>=', now())
             ->whereDate('due_date', '<=', now()->addDays($days))
-            ->whereIn('status', ['pending', 'in_progress'])
+            ->whereIn('status', ['pending_payment', 'in_progress'])
             ->orderBy('due_date', 'asc')
             ->get();
 
@@ -163,7 +163,7 @@ class DashboardController extends Controller
             ->with(['client', 'measurement'])
             ->whereNotNull('due_date')
             ->whereDate('due_date', '<', now())
-            ->whereIn('status', ['pending', 'in_progress'])
+            ->whereIn('status', ['pending_payment', 'in_progress'])
             ->orderBy('due_date', 'asc')
             ->get();
 

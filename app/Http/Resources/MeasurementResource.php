@@ -14,7 +14,7 @@ class MeasurementResource extends JsonResource
             'client_id'        => $this->client_id,
             'name'             => $this->name,
             'fields'           => $this->fields,
-            'unit'             => $this->unit->value,
+            'unit'             => $this->unit?->value,
             'notes'            => $this->notes,
             'measurement_date' => $this->measurement_date->format('Y-m-d'),
             'is_default'       => $this->is_default,
