@@ -4,14 +4,16 @@
         "title": "Fittingz API Documentation",
         "description": "REST API for fashion designers and tailoring businesses to manage clients, measurements, orders, and payments.\n\nAll endpoints require a Bearer token received from the `/api/v1/auth/login` endpoint (except authentication routes).",
         "contact": {
+            "name": "Fittingz Developer Support",
+            "url": "http://localhost:8000",
             "email": "support@fittingz.com"
         },
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "/",
-            "description": "API Server"
+            "url": "http://localhost:8000",
+            "description": "Local API Server"
         }
     ],
     "paths": {
@@ -84,9 +86,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "message": {
                                             "type": "string",
@@ -100,7 +102,7 @@
                                                             "type": "string",
                                                             "format": "uuid"
                                                         },
-                                                        "name": {
+                                                        "business_name": {
                                                             "type": "string"
                                                         },
                                                         "email": {
@@ -124,57 +126,6 @@
                     "422": {
                         "description": "Validation error"
                     }
-                }
-            }
-        },
-        "/api/v1/auth/verify-email": {
-            "post": {
-                "tags": ["Authentication"],
-                "summary": "Verify email address with a 4-digit code",
-                "description": "Verifies the user's email using the 4-digit code sent on registration. The code expires in 15 minutes.",
-                "operationId": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": ["email", "code"],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com"
-                                    },
-                                    "code": {
-                                        "type": "string",
-                                        "example": "4827",
-                                        "minLength": 4,
-                                        "maxLength": 4,
-                                        "description": "4-digit verification code sent to the user's email"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Email verified successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "status": {"type": "string", "example": "success"},
-                                        "message": {"type": "string", "example": "Email verified successfully. You can now log in."}
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {"description": "Invalid or expired code"},
-                    "422": {"description": "Validation error"}
                 }
             }
         },
@@ -218,9 +169,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "message": {
                                             "type": "string",
@@ -234,7 +185,7 @@
                                                             "type": "string",
                                                             "format": "uuid"
                                                         },
-                                                        "name": {
+                                                        "business_name": {
                                                             "type": "string"
                                                         },
                                                         "email": {
@@ -269,8 +220,7 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Resend email verification code",
-                "description": "Generates a new 4-digit verification code and sends it to the user's email. The code expires in 15 minutes.",
+                "summary": "Resend email verification link",
                 "operationId": "be2e0a4c08d3ef165acfc499d8c3620c",
                 "requestBody": {
                     "required": true,
@@ -294,7 +244,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "New verification code sent"
+                        "description": "Verification link sent"
                     },
                     "400": {
                         "description": "Email already verified"
@@ -471,9 +421,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "message": {
                                             "type": "string",
@@ -602,9 +552,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "message": {
                                             "type": "string",
@@ -648,9 +598,6 @@
                                                 },
                                                 "type": "object"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object"
                                         },
                                         "meta": {
                                             "type": "object"
@@ -767,12 +714,44 @@
                     }
                 ]
             },
-            "put": {
+            "delete": {
+                "tags": [
+                    "Clients"
+                ],
+                "summary": "Delete a client",
+                "operationId": "1dee78387b743d88137588674ab6daf5",
+                "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Client deleted successfully"
+                    },
+                    "404": {
+                        "description": "Client not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
                 "tags": [
                     "Clients"
                 ],
                 "summary": "Update existing client",
-                "operationId": "8821402d9ab7eda675e1b58ec180811c",
+                "operationId": "690010e1f0d1ebf0d454fa98779557cf",
                 "parameters": [
                     {
                         "name": "client",
@@ -840,38 +819,6 @@
                         "bearerAuth": []
                     }
                 ]
-            },
-            "delete": {
-                "tags": [
-                    "Clients"
-                ],
-                "summary": "Delete a client",
-                "operationId": "1dee78387b743d88137588674ab6daf5",
-                "parameters": [
-                    {
-                        "name": "client",
-                        "in": "path",
-                        "description": "Client UUID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Client deleted successfully"
-                    },
-                    "404": {
-                        "description": "Client not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
             }
         },
         "/api/v1/clients/{client}/profile": {
@@ -900,26 +847,32 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "properties": {
                                                 "client": {
                                                     "type": "object"
                                                 },
-                                                "recent_orders": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
                                                 "measurements": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
+                                                    "properties": {
+                                                        "default": {
+                                                            "type": "object",
+                                                            "nullable": true
+                                                        },
+                                                        "latest": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "object"
+                                                            }
+                                                        },
+                                                        "total_count": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
@@ -955,9 +908,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "properties": {
@@ -1098,9 +1051,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
@@ -1152,32 +1105,22 @@
                 ]
             }
         },
-        "/api/v1/measurements": {
+        "/api/v1/clients/{client}/measurements": {
             "get": {
                 "tags": [
                     "Measurements"
                 ],
-                "summary": "Get a paginated list of measurements",
-                "operationId": "b1beabd84f4ce545c18ad55b22f28a0a",
+                "summary": "Get a client's measurements",
+                "operationId": "70270dd88b02794e897d58d54ccf48bc",
                 "parameters": [
                     {
-                        "name": "client_id",
-                        "in": "query",
-                        "description": "Filter by Client UUID",
-                        "required": false,
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
                         "schema": {
                             "type": "string",
                             "format": "uuid"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "Page number",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 1
                         }
                     }
                 ],
@@ -1188,19 +1131,15 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
                                                     "id": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "client_id": {
                                                         "type": "string",
                                                         "format": "uuid"
                                                     },
@@ -1228,12 +1167,6 @@
                                                 },
                                                 "type": "object"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object"
-                                        },
-                                        "meta": {
-                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1253,24 +1186,30 @@
                     "Measurements"
                 ],
                 "summary": "Create new measurements for a client",
-                "operationId": "c0234d746fe8bdfc035a68b08b6e1db8",
+                "operationId": "b57b1cec77bb67f5d07f39c75a13d7b2",
+                "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "client_id",
                                     "measurements",
                                     "unit",
                                     "measurement_date"
                                 ],
                                 "properties": {
-                                    "client_id": {
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "example": "550e8400-e29b-41d4-a716-446655440000"
-                                    },
                                     "measurements": {
                                         "description": "Key-value pairs of body parts and their measurements",
                                         "minProperties": 1,
@@ -1322,14 +1261,24 @@
                 ]
             }
         },
-        "/api/v1/measurements/{measurement}": {
+        "/api/v1/clients/{client}/measurements/{measurement}": {
             "get": {
                 "tags": [
                     "Measurements"
                 ],
                 "summary": "Get measurement details",
-                "operationId": "f632daaa01340a62e0d6369c6988d5a4",
+                "operationId": "413179556c1eda41d13321e17e3691ee",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "measurement",
                         "in": "path",
@@ -1360,8 +1309,18 @@
                     "Measurements"
                 ],
                 "summary": "Delete a measurement profile",
-                "operationId": "c62b6ceab5d3fd9861502191d3688118",
+                "operationId": "cfbf2519965b5cab7d6bf3eecdd1ce85",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "measurement",
                         "in": "path",
@@ -1392,8 +1351,18 @@
                     "Measurements"
                 ],
                 "summary": "Update existing measurements",
-                "operationId": "2df96c1c4782631800ecb6a0281e4c7d",
+                "operationId": "88ee004980ffee7c52fbbaa1abab527d",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "measurement",
                         "in": "path",
@@ -1460,14 +1429,24 @@
                 ]
             }
         },
-        "/api/v1/measurements/{measurement}/set-default": {
+        "/api/v1/clients/{client}/measurements/{measurement}/set-default": {
             "patch": {
                 "tags": [
                     "Measurements"
                 ],
                 "summary": "Set a measurement profile as the client's default",
-                "operationId": "fe0b642fc80c4ebd4079510e9ff40698",
+                "operationId": "56f13e34f1ce9cad47eba2db3c6f86c0",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "measurement",
                         "in": "path",
@@ -1494,19 +1473,19 @@
                 ]
             }
         },
-        "/api/v1/orders": {
+        "/api/v1/clients/{client}/orders": {
             "get": {
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Get a paginated list of orders",
-                "operationId": "f929d5d8022a1486da9c9bfb14de60ee",
+                "summary": "Get a client's orders",
+                "operationId": "7e849b0936bdfca2e8a5eddcdf1f07eb",
                 "parameters": [
                     {
-                        "name": "client_id",
-                        "in": "query",
-                        "description": "Filter by Client UUID",
-                        "required": false,
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
                         "schema": {
                             "type": "string",
                             "format": "uuid"
@@ -1529,6 +1508,35 @@
                         }
                     },
                     {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search title, order number, or description",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter orders created on or after date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter orders created on or before date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
                         "name": "page",
                         "in": "query",
                         "description": "Page number",
@@ -1546,19 +1554,15 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
                                                     "id": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "client_id": {
                                                         "type": "string",
                                                         "format": "uuid"
                                                     },
@@ -1595,9 +1599,6 @@
                                                 "type": "object"
                                             }
                                         },
-                                        "links": {
-                                            "type": "object"
-                                        },
                                         "meta": {
                                             "type": "object"
                                         }
@@ -1619,24 +1620,30 @@
                     "Orders"
                 ],
                 "summary": "Create a new order",
-                "operationId": "3934f1685925f73b15690d46592a2ff1",
+                "operationId": "f8da6b4a5e45619010d4c63e8f9b5b7b",
+                "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "client_id",
                                     "title",
                                     "quantity",
                                     "total_amount"
                                 ],
                                 "properties": {
-                                    "client_id": {
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "example": "550e8400-e29b-41d4-a716-446655440000"
-                                    },
                                     "measurement_id": {
                                         "type": "string",
                                         "format": "uuid",
@@ -1713,14 +1720,24 @@
                 ]
             }
         },
-        "/api/v1/orders/{order}": {
+        "/api/v1/clients/{client}/orders/{order}": {
             "get": {
                 "tags": [
                     "Orders"
                 ],
                 "summary": "Get order details",
-                "operationId": "4e9f987c7a6879626c8435cd43bad1f8",
+                "operationId": "edd8e82b9cb062c2dae2145870aa0a14",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -1751,8 +1768,18 @@
                     "Orders"
                 ],
                 "summary": "Delete an order",
-                "operationId": "28d4d58483060625bed7707468fea75c",
+                "operationId": "4408d7cbdf64318f26bf016ccc53abc1",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -1780,8 +1807,18 @@
                     "Orders"
                 ],
                 "summary": "Update order details",
-                "operationId": "fb9cd183ff6db55b313783d49e3686eb",
+                "operationId": "655b1caf578ed9964124c218c85b1893",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -1850,14 +1887,24 @@
                 ]
             }
         },
-        "/api/v1/orders/{order}/status": {
+        "/api/v1/clients/{client}/orders/{order}/status": {
             "patch": {
                 "tags": [
                     "Orders"
                 ],
                 "summary": "Update order status",
-                "operationId": "63f87e60361833e4b5a0287c7629be96",
+                "operationId": "064c7ee0e7815e75327c9f6a49451093",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -1907,14 +1954,24 @@
                 ]
             }
         },
-        "/api/v1/orders/{order}/measurement": {
+        "/api/v1/clients/{client}/orders/{order}/measurement": {
             "patch": {
                 "tags": [
                     "Orders"
                 ],
                 "summary": "Link order to a measurement profile",
-                "operationId": "cf53ca5db7f5076a1ec85c46ce4c5820",
+                "operationId": "64ab602be8ee462ec204e785c5bed437",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -1957,43 +2014,24 @@
                 ]
             }
         },
-        "/api/v1/orders/{order}/styles": {
-            "get": {
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Get ordered styles linked to an order",
-                "operationId": "25ecaa9c4ded50fbdb94e178e57d7fb2",
-                "parameters": [
-                    {
-                        "name": "order",
-                        "in": "path",
-                        "description": "Order UUID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Styles retrieved successfully"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
+        "/api/v1/clients/{client}/orders/{order}/styles": {
             "post": {
                 "tags": [
                     "Orders"
                 ],
                 "summary": "Attach a style to an order",
-                "operationId": "24bf9873b7cd275af178aee7e2879977",
+                "operationId": "7d17095628cfb3172368c09cf7abe70d",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -2036,14 +2074,24 @@
                 ]
             }
         },
-        "/api/v1/orders/{order}/styles/{style}": {
+        "/api/v1/clients/{client}/orders/{order}/styles/{style}": {
             "delete": {
                 "tags": [
                     "Orders"
                 ],
                 "summary": "Detach a style from an order",
-                "operationId": "61ff2326bec204a44791407a7770920a",
+                "operationId": "310e9dcbe2ff8a3eff29d8d23b321484",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "order",
                         "in": "path",
@@ -2077,22 +2125,67 @@
                 ]
             }
         },
-        "/api/v1/payments": {
+        "/api/v1/clients/{client}/orders/{order}/payments": {
             "get": {
                 "tags": [
                     "Payments"
                 ],
-                "summary": "Get a paginated list of payments",
-                "operationId": "6f67138b3e226d8b4bb23895bfe58eb2",
+                "summary": "Get an order's payments",
+                "operationId": "96eb3a294511731215374a088089d9c2",
                 "parameters": [
                     {
-                        "name": "order_id",
-                        "in": "query",
-                        "description": "Filter by Order UUID",
-                        "required": false,
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
                         "schema": {
                             "type": "string",
                             "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter payments on or after date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter payments on or before date",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "payment_method",
+                        "in": "query",
+                        "description": "Filter by payment method",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "cash",
+                                "bank_transfer",
+                                "pos",
+                                "other"
+                            ]
                         }
                     },
                     {
@@ -2113,19 +2206,15 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
                                                     "id": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "order_id": {
                                                         "type": "string",
                                                         "format": "uuid"
                                                     },
@@ -2154,9 +2243,6 @@
                                                 "type": "object"
                                             }
                                         },
-                                        "links": {
-                                            "type": "object"
-                                        },
                                         "meta": {
                                             "type": "object"
                                         }
@@ -2178,24 +2264,40 @@
                     "Payments"
                 ],
                 "summary": "Record a new payment",
-                "operationId": "dd0dbc9a2404e045e6f7be173109607d",
+                "operationId": "4e2dbf70cf599d3a57fbe36932e3e4f1",
+                "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "order_id",
                                     "amount",
                                     "payment_date",
                                     "payment_method"
                                 ],
                                 "properties": {
-                                    "order_id": {
-                                        "type": "string",
-                                        "format": "uuid",
-                                        "example": "550e8400-e29b-41d4-a716-446655440000"
-                                    },
                                     "amount": {
                                         "description": "Cannot exceed the outstanding balance of the order",
                                         "type": "number",
@@ -2252,14 +2354,34 @@
                 ]
             }
         },
-        "/api/v1/payments/{payment}": {
+        "/api/v1/clients/{client}/orders/{order}/payments/{payment}": {
             "get": {
                 "tags": [
                     "Payments"
                 ],
                 "summary": "Get payment details",
-                "operationId": "e6c14596c5af78f32b694594c8d01529",
+                "operationId": "cc1cfaa6fc36cc47f5b2b13bac7472f9",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "payment",
                         "in": "path",
@@ -2290,8 +2412,28 @@
                     "Payments"
                 ],
                 "summary": "Delete a payment record",
-                "operationId": "28c3a4f303a55e770ca19298a54d9785",
+                "operationId": "afb1fa1973cfadcfc5c7c986a7dbb03a",
                 "parameters": [
+                    {
+                        "name": "client",
+                        "in": "path",
+                        "description": "Client UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
                     {
                         "name": "payment",
                         "in": "path",
@@ -2362,9 +2504,9 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "status": {
-                                            "type": "string",
-                                            "example": "success"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
                                         "data": {
                                             "type": "array",
@@ -2393,9 +2535,6 @@
                                                 },
                                                 "type": "object"
                                             }
-                                        },
-                                        "links": {
-                                            "type": "object"
                                         },
                                         "meta": {
                                             "type": "object"
@@ -2564,9 +2703,14 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
                                     "title": {
                                         "type": "string",
                                         "nullable": true,
@@ -2582,7 +2726,7 @@
                                         "nullable": true,
                                         "maxLength": 100
                                     },
-                                    "tags": {
+                                    "tags[]": {
                                         "type": "array",
                                         "items": {
                                             "type": "string",

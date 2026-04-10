@@ -14,14 +14,7 @@ class StorePaymentRequest extends BaseRequest
 
     public function rules(): array
     {
-        $userId = $this->user()->id;
-
         return [
-            'order_id' => [
-                'required',
-                'uuid',
-                Rule::exists('orders', 'id')->where('user_id', $userId),
-            ],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999.99'],
             'payment_date' => ['required', 'date', 'before_or_equal:today'],
             'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'pos', 'other'])],
@@ -33,8 +26,6 @@ class StorePaymentRequest extends BaseRequest
     public function messages(): array
     {
         return [
-            'order_id.required' => 'Order is required',
-            'order_id.exists' => 'Selected order not found',
             'amount.required' => 'Payment amount is required',
             'amount.min' => 'Payment amount must be at least 0.01',
             'amount.max' => 'Payment amount is too large',
@@ -56,8 +47,8 @@ class StorePaymentRequest extends BaseRequest
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if (!$validator->errors()->has('order_id') && !$validator->errors()->has('amount')) {
-                $order = $this->user()->orders()->find($this->order_id);
+            if (!$validator->errors()->has('amount')) {
+                $order = $this->route('order');
                 
                 if ($order) {
                     $balance = $order->balance;

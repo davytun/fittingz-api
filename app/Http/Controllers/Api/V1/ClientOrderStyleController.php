@@ -5,27 +5,18 @@ namespace App\Http\Controllers\Api\V1;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StyleResource;
+use App\Models\Client;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class OrderStyleController extends Controller
+class ClientOrderStyleController extends Controller
 {
-    public function index(Request $request, string $orderId): JsonResponse
+    public function attach(Request $request, Client $client, Order $order): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($orderId);
+        $this->authorize('update', $order);
 
-        $styles = $order->styles;
-
-        return ApiResponse::success(
-            'Order styles retrieved successfully',
-            StyleResource::collection($styles)
-        );
-    }
-
-    public function attach(Request $request, string $orderId): JsonResponse
-    {
         $validated = $request->validate([
             'style_id' => [
                 'required',
@@ -38,9 +29,6 @@ class OrderStyleController extends Controller
             'style_id.exists' => 'Style not found',
         ]);
 
-        $order = $request->user()->orders()->findOrFail($orderId);
-
-        // Check if already attached
         if ($order->styles()->where('style_id', $validated['style_id'])->exists()) {
             return ApiResponse::error(
                 'Style is already linked to this order',
@@ -49,9 +37,7 @@ class OrderStyleController extends Controller
             );
         }
 
-        // Attach style
         $order->styles()->attach($validated['style_id']);
-
         $style = $request->user()->styles()->findOrFail($validated['style_id']);
 
         return ApiResponse::success(
@@ -61,15 +47,13 @@ class OrderStyleController extends Controller
         );
     }
 
-    public function detach(Request $request, string $orderId, string $styleId): JsonResponse
+    public function detach(Request $request, Client $client, Order $order, string $style): JsonResponse
     {
-        $order = $request->user()->orders()->findOrFail($orderId);
+        $this->authorize('update', $order);
 
-        // Verify style belongs to user
-        $style = $request->user()->styles()->findOrFail($styleId);
+        $request->user()->styles()->findOrFail($style);
 
-        // Check if style is attached
-        if (!$order->styles()->where('style_id', $styleId)->exists()) {
+        if (!$order->styles()->where('style_id', $style)->exists()) {
             return ApiResponse::error(
                 'Style is not linked to this order',
                 null,
@@ -77,8 +61,7 @@ class OrderStyleController extends Controller
             );
         }
 
-        // Detach style
-        $order->styles()->detach($styleId);
+        $order->styles()->detach($style);
 
         return ApiResponse::success('Style unlinked from order successfully');
     }

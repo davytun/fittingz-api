@@ -2,8 +2,18 @@
 
 namespace App\Providers;
 
+use App\Models\Client;
+use App\Models\Measurement;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Policies\ClientPolicy;
+use App\Policies\MeasurementPolicy;
+use App\Policies\OrderPolicy;
+use App\Policies\PaymentPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +31,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // cPanel often runs older MySQL/MariaDB builds that cannot index utf8mb4
+        // varchar(255) columns. Limiting the default string length keeps migrations portable.
+        Schema::defaultStringLength(191);
+
+        Gate::policy(Client::class, ClientPolicy::class);
+        Gate::policy(Measurement::class, MeasurementPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Payment::class, PaymentPolicy::class);
+
         RateLimiter::for('auth', function ($request) {
             return Limit::perMinute(5)->by($request->ip());
         });

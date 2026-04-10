@@ -13,7 +13,7 @@ class DashboardDocs
         security: [["bearerAuth" => []]],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "total_clients", type: "integer"),
                     new OA\Property(property: "active_orders", type: "integer"),
@@ -79,7 +79,7 @@ class DashboardDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "period", type: "string", example: "Oct 2023"),
                     new OA\Property(property: "revenue", type: "number", format: "float", example: 12500.50)

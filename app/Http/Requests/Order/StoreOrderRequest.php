@@ -17,11 +17,6 @@ class StoreOrderRequest extends BaseRequest
         $userId = $this->user()->id;
 
         return [
-            'client_id' => [
-                'required',
-                'uuid',
-                Rule::exists('clients', 'id')->where('user_id', $userId),
-            ],
             'measurement_id' => [
                 'nullable',
                 'uuid',
@@ -41,8 +36,6 @@ class StoreOrderRequest extends BaseRequest
     public function messages(): array
     {
         return [
-            'client_id.required' => 'Client is required',
-            'client_id.exists' => 'Selected client not found',
             'measurement_id.exists' => 'Selected measurement not found',
             'title.required' => 'Order title is required',
             'title.max' => 'Order title cannot exceed 255 characters',

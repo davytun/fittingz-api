@@ -18,7 +18,7 @@ class ClientDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Successful operation", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "message", type: "string", example: "Clients retrieved successfully"),
                 new OA\Property(property: "data", type: "array", items: new OA\Items(properties: [
                     new OA\Property(property: "id", type: "string", format: "uuid"),
@@ -30,7 +30,6 @@ class ClientDocs
                     new OA\Property(property: "measurements_count", type: "integer"),
                     new OA\Property(property: "created_at", type: "string", format: "date-time")
                 ])),
-                new OA\Property(property: "links", type: "object"),
                 new OA\Property(property: "meta", type: "object")
             ]))
         ]
@@ -76,7 +75,7 @@ class ClientDocs
     )]
     public function show() {}
 
-    #[OA\Put(
+    #[OA\Patch(
         path: "/api/v1/clients/{client}",
         summary: "Update existing client",
         tags: ["Clients"],
@@ -128,11 +127,14 @@ class ClientDocs
         ],
         responses: [
             new OA\Response(response: 200, description: "Client profile retrieved successfully", content: new OA\JsonContent(properties: [
-                new OA\Property(property: "status", type: "string", example: "success"),
+                new OA\Property(property: "success", type: "boolean", example: true),
                 new OA\Property(property: "data", type: "object", properties: [
                     new OA\Property(property: "client", type: "object"),
-                    new OA\Property(property: "recent_orders", type: "array", items: new OA\Items(type: "object")),
-                    new OA\Property(property: "measurements", type: "array", items: new OA\Items(type: "object"))
+                    new OA\Property(property: "measurements", type: "object", properties: [
+                        new OA\Property(property: "default", type: "object", nullable: true),
+                        new OA\Property(property: "latest", type: "array", items: new OA\Items(type: "object")),
+                        new OA\Property(property: "total_count", type: "integer")
+                    ])
                 ])
             ])),
             new OA\Response(response: 404, description: "Client not found")

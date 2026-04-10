@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\ClientController;
+use App\Http\Controllers\Api\V1\ClientMeasurementController;
+use App\Http\Controllers\Api\V1\ClientOrderController;
+use App\Http\Controllers\Api\V1\ClientOrderStyleController;
 use App\Http\Controllers\Api\V1\ClientProfileController;
-use App\Http\Controllers\Api\V1\MeasurementController;
-use App\Http\Controllers\Api\V1\OrderController;
-use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\StyleController;
-use App\Http\Controllers\Api\V1\OrderStyleController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\CronController;
 use Illuminate\Support\Facades\Route;
@@ -52,31 +52,51 @@ Route::prefix('v1')->group(function () {
     Route::middleware(['auth:sanctum', 'token.expiration', 'throttle:api', 'log.api'])->group(function () {
         
         // CLIENTS
-        Route::apiResource('clients', ClientController::class);
-        Route::get('clients/{client}/profile', [ClientProfileController::class, 'show']);
+        Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
+        Route::post('clients', [ClientController::class, 'store'])->name('clients.store');
+        Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+        Route::patch('clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+        Route::delete('clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
 
-        // MEASUREMENTS
-        Route::post('measurements', [MeasurementController::class, 'store']);
-        Route::get('measurements', [MeasurementController::class, 'index']);
-        Route::get('measurements/{measurement}', [MeasurementController::class, 'show']);
-        Route::patch('measurements/{measurement}', [MeasurementController::class, 'update']);
-        Route::patch('measurements/{measurement}/set-default', [MeasurementController::class, 'setDefault']);
-        Route::delete('measurements/{measurement}', [MeasurementController::class, 'destroy']);
+        Route::scopeBindings()
+            ->prefix('clients/{client}')
+            ->name('clients.')
+            ->group(function () {
+                Route::get('profile', [ClientProfileController::class, 'show'])->name('profile');
 
-        // ORDERS
-        Route::post('orders', [OrderController::class, 'store']);
-        Route::get('orders', [OrderController::class, 'index']);
-        Route::get('orders/{order}', [OrderController::class, 'show']);
-        Route::patch('orders/{order}', [OrderController::class, 'update']);
-        Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus']);
-        Route::patch('orders/{order}/measurement', [OrderController::class, 'updateMeasurement']);
-        Route::delete('orders/{order}', [OrderController::class, 'destroy']);
+                Route::get('measurements', [ClientMeasurementController::class, 'index'])->name('measurements.index');
+                Route::post('measurements', [ClientMeasurementController::class, 'store'])->name('measurements.store');
+                Route::get('measurements/{measurement}', [ClientMeasurementController::class, 'show'])->name('measurements.show');
+                Route::patch('measurements/{measurement}', [ClientMeasurementController::class, 'update'])->name('measurements.update');
+                Route::delete('measurements/{measurement}', [ClientMeasurementController::class, 'destroy'])->name('measurements.destroy');
+                Route::patch('measurements/{measurement}/set-default', [ClientMeasurementController::class, 'setDefault'])
+                    ->name('measurements.set-default');
 
-        // PAYMENTS
-        Route::post('payments', [PaymentController::class, 'store']);
-        Route::get('payments', [PaymentController::class, 'index']);
-        Route::get('payments/{payment}', [PaymentController::class, 'show']);
-        Route::delete('payments/{payment}', [PaymentController::class, 'destroy']);
+                Route::prefix('orders')->name('orders.')->group(function () {
+                    Route::get('/', [ClientOrderController::class, 'index'])->name('index');
+                    Route::post('/', [ClientOrderController::class, 'store'])->name('store');
+
+                    Route::prefix('{order}')->group(function () {
+                        Route::get('/', [ClientOrderController::class, 'show'])->name('show');
+                        Route::patch('/', [ClientOrderController::class, 'update'])->name('update');
+                        Route::delete('/', [ClientOrderController::class, 'destroy'])->name('destroy');
+                        Route::patch('status', [ClientOrderController::class, 'updateStatus'])->name('status.update');
+                        Route::patch('measurement', [ClientOrderController::class, 'updateMeasurement'])->name('measurement.update');
+
+                        Route::prefix('payments')->name('payments.')->group(function () {
+                            Route::get('/', [OrderPaymentController::class, 'index'])->name('index');
+                            Route::post('/', [OrderPaymentController::class, 'store'])->name('store');
+                            Route::get('{payment}', [OrderPaymentController::class, 'show'])->name('show');
+                            Route::delete('{payment}', [OrderPaymentController::class, 'destroy'])->name('destroy');
+                        });
+
+                        Route::prefix('styles')->name('styles.')->group(function () {
+                            Route::post('/', [ClientOrderStyleController::class, 'attach'])->name('store');
+                            Route::delete('{style}', [ClientOrderStyleController::class, 'detach'])->name('destroy');
+                        });
+                    });
+                });
+            });
 
         // STYLES
         Route::post('styles', [StyleController::class, 'store']);
@@ -84,11 +104,6 @@ Route::prefix('v1')->group(function () {
         Route::get('styles/{style}', [StyleController::class, 'show']);
         Route::patch('styles/{style}', [StyleController::class, 'update']);
         Route::delete('styles/{style}', [StyleController::class, 'destroy']);
-
-        // LINK STYLES TO ORDERS
-        Route::get('orders/{order}/styles', [OrderStyleController::class, 'index']);
-        Route::post('orders/{order}/styles', [OrderStyleController::class, 'attach']);
-        Route::delete('orders/{order}/styles/{style}', [OrderStyleController::class, 'detach']);
 
         // DASHBOARD
         Route::prefix('dashboard')->group(function () {
