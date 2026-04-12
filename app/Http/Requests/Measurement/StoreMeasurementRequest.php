@@ -20,9 +20,9 @@ class StoreMeasurementRequest extends BaseRequest
             'name'             => ['required', 'string', 'max:255'],
             'fields'           => ['required', 'array', 'min:1', new ValidMeasurementKeys()],
             'fields.*'         => ['required', new ValidMeasurementValue()],
-            'unit'             => ['required', Rule::in(['cm', 'inches'])],
+            'unit'             => ['nullable', Rule::in(['cm', 'inches'])],
             'notes'            => ['nullable', 'string', 'max:1000'],
-            'measurement_date' => ['required', 'date', 'before_or_equal:today'],
+            'measurement_date' => ['nullable', 'date', 'before_or_equal:today'],
             'is_default'       => ['boolean'],
         ];
     }
@@ -47,6 +47,13 @@ class StoreMeasurementRequest extends BaseRequest
     {
         $fields = $this->fields;
 
+        $mergeData = [
+            'unit'             => $this->unit ?: 'inches',
+            'measurement_date' => $this->measurement_date ?: now()->toDateString(),
+            'notes'            => $this->notes ? trim($this->notes) : null,
+            'name'             => $this->name ? trim($this->name) : $this->name,
+        ];
+
         if (is_array($fields)) {
             $sanitized = [];
             foreach ($fields as $key => $value) {
@@ -54,12 +61,9 @@ class StoreMeasurementRequest extends BaseRequest
                 $sanitizedValue = is_string($value) ? trim($value) : $value;
                 $sanitized[$sanitizedKey] = $sanitizedValue;
             }
-
-            $this->merge([
-                'fields' => $sanitized,
-                'notes'  => $this->notes ? trim($this->notes) : null,
-                'name'   => $this->name ? trim($this->name) : $this->name,
-            ]);
+            $mergeData['fields'] = $sanitized;
         }
+
+        $this->merge($mergeData);
     }
 }
