@@ -96,10 +96,11 @@ class DashboardController extends Controller
 
     public function recentOrders(Request $request): JsonResponse
     {
-        $limit = min((int) $request->input('limit', 10), 50);
+        $limit = max(1, min((int) $request->input('limit', 10), 50));
 
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
+            ->withSum('payments', 'amount')
             ->latest()
             ->limit($limit)
             ->get();
@@ -140,6 +141,7 @@ class DashboardController extends Controller
 
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
+            ->withSum('payments', 'amount')
             ->whereNotNull('due_date')
             ->whereDate('due_date', '>=', now())
             ->whereDate('due_date', '<=', now()->addDays($days))
@@ -161,6 +163,7 @@ class DashboardController extends Controller
     {
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
+            ->withSum('payments', 'amount')
             ->whereNotNull('due_date')
             ->whereDate('due_date', '<', now())
             ->whereIn('status', ['pending_payment', 'in_progress'])
@@ -234,7 +237,7 @@ class DashboardController extends Controller
 
     public function topClients(Request $request): JsonResponse
     {
-        $limit = min((int) $request->input('limit', 10), 50);
+        $limit = max(1, min((int) $request->input('limit', 10), 50));
 
         $clients = $request->user()->clients()
             ->withCount('orders')
