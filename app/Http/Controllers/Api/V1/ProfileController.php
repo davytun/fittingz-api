@@ -6,9 +6,9 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -25,15 +25,23 @@ class ProfileController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        // If email is changing, require re-verification
-        if (isset($data['email']) && $data['email'] !== $user->email) {
+        $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
+
+        if ($emailChanged) {
             $data['email_verified_at'] = null;
         }
 
         $user->update($data);
 
+        if ($emailChanged) {
+            $code = $user->generateVerificationCode();
+            $user->notify(new VerifyEmailNotification($code));
+        }
+
         return ApiResponse::success(
-            'Profile updated successfully',
+            $emailChanged
+                ? 'Profile updated successfully. Please check your email to verify your new address.'
+                : 'Profile updated successfully',
             new UserResource($user->fresh())
         );
     }
