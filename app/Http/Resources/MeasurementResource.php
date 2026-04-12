@@ -16,7 +16,7 @@ class MeasurementResource extends JsonResource
             'fields'           => $this->fields,
             'unit'             => $this->unit?->value,
             'notes'            => $this->notes,
-            'measurement_date' => $this->measurement_date->format('Y-m-d'),
+            'measurement_date' => $this->measurement_date?->format('Y-m-d'),
             'is_default'       => $this->is_default,
             'created_at'       => $this->created_at,
             'updated_at'       => $this->updated_at,

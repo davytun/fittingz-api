@@ -15,7 +15,7 @@ class UpdateClientRequest extends BaseRequest
     public function rules(): array
     {
         $userId = $this->user()->id;
-        $clientId = $this->route('client');
+        $clientId = $this->route('client')?->getKey();
 
         return [
             'name' => ['sometimes', 'required', 'string', 'min:2', 'max:255'],

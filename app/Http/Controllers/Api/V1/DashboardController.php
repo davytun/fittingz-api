@@ -39,11 +39,10 @@ class DashboardController extends Controller
         // Outstanding balance (pending payments)
         $outstandingBalance = $totalRevenue - $totalPaid;
 
-        // Orders with pending payments
+        // Orders with pending payments (DB-level, no N+1)
         $ordersWithBalance = $user->orders()
-            ->with('client')
-            ->get()
-            ->filter(fn($order) => $order->balance > 0)
+            ->whereIn('status', ['pending_payment', 'in_progress'])
+            ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
             ->count();
 
         // Revenue this month
@@ -97,7 +96,7 @@ class DashboardController extends Controller
 
     public function recentOrders(Request $request): JsonResponse
     {
-        $limit = (int) $request->input('limit', 10);
+        $limit = min((int) $request->input('limit', 10), 50);
 
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
@@ -118,12 +117,12 @@ class DashboardController extends Controller
     {
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
-            ->get()
-            ->filter(fn($order) => $order->balance > 0)
-            ->sortByDesc(fn($order) => $order->balance)
-            ->values();
+            ->withSum('payments', 'amount')
+            ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
+            ->orderByRaw('(total_amount - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)) DESC')
+            ->get();
 
-        $totalOutstanding = $orders->sum(fn($order) => $order->balance);
+        $totalOutstanding = $orders->sum(fn($order) => $order->total_amount - ($order->payments_sum_amount ?? 0));
 
         return ApiResponse::success(
             'Pending payments retrieved successfully',
@@ -235,7 +234,7 @@ class DashboardController extends Controller
 
     public function topClients(Request $request): JsonResponse
     {
-        $limit = (int) $request->input('limit', 10);
+        $limit = min((int) $request->input('limit', 10), 50);
 
         $clients = $request->user()->clients()
             ->withCount('orders')

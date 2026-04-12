@@ -15,12 +15,18 @@ class StoreOrderRequest extends BaseRequest
     public function rules(): array
     {
         $userId = $this->user()->id;
+        $client = $this->route('client');
 
         return [
             'measurement_id'    => [
                 'nullable',
                 'uuid',
-                Rule::exists('measurements', 'id')->where('user_id', $userId),
+                Rule::exists('measurements', 'id')->where(function ($query) use ($userId, $client) {
+                    $query->where('user_id', $userId);
+                    if ($client) {
+                        $query->where('client_id', $client->getKey());
+                    }
+                }),
             ],
             'details'           => ['nullable', 'array'],
             'details.*'         => ['nullable', 'string', 'max:500'],

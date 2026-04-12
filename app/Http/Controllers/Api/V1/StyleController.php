@@ -102,7 +102,7 @@ class StyleController extends Controller
 
         return ApiResponse::success(
             'Style updated successfully',
-            new StyleResource($style)
+            new StyleResource($style->fresh())
         );
     }
 

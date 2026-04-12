@@ -237,11 +237,11 @@ class AuthDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["current_password", "new_password", "new_password_confirmation"],
+                required: ["current_password", "new_password", "password_confirmation"],
                 properties: [
                     new OA\Property(property: "current_password", type: "string", format: "password"),
                     new OA\Property(property: "new_password", type: "string", format: "password", minLength: 8),
-                    new OA\Property(property: "new_password_confirmation", type: "string", format: "password")
+                    new OA\Property(property: "password_confirmation", type: "string", format: "password")
                 ]
             )
         ),
