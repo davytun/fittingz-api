@@ -30,14 +30,25 @@ class DashboardController extends Controller
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        // Total revenue (all orders)
-        $totalRevenue = $user->orders()->sum('total_amount');
+        // Revenue grouped by currency (avoids mixing incompatible currencies)
+        $revenuePerCurrency = $user->orders()
+            ->select('currency', DB::raw('SUM(total_amount) as total'))
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->map(fn ($v) => (float) $v);
 
-        // Total payments received
-        $totalPaid = $user->payments()->sum('amount');
+        // Payments grouped by order currency (join through orders to get currency)
+        $paidPerCurrency = $user->orders()
+            ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
+            ->leftJoin('payments', 'payments.order_id', '=', 'orders.id')
+            ->groupBy('orders.currency')
+            ->pluck('total', 'currency')
+            ->map(fn ($v) => (float) $v);
 
-        // Outstanding balance (pending payments)
-        $outstandingBalance = $totalRevenue - $totalPaid;
+        // Outstanding per currency
+        $outstandingPerCurrency = $revenuePerCurrency->map(
+            fn ($rev, $currency) => round($rev - ($paidPerCurrency[$currency] ?? 0), 2)
+        );
 
         // Orders with pending payments (DB-level, no N+1)
         $ordersWithBalance = $user->orders()
@@ -45,17 +56,26 @@ class DashboardController extends Controller
             ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
             ->count();
 
-        // Revenue this month
+        // Revenue this month grouped by currency
         $revenueThisMonth = $user->orders()
+            ->select('currency', DB::raw('SUM(total_amount) as total'))
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->sum('total_amount');
+            ->groupBy('currency')
+            ->pluck('total', 'currency')
+            ->map(fn ($v) => (float) $v);
 
-        // Payments this month
-        $paymentsThisMonth = $user->payments()
-            ->whereMonth('payment_date', now()->month)
-            ->whereYear('payment_date', now()->year)
-            ->sum('amount');
+        // Payments this month grouped by order currency
+        $paymentsThisMonth = $user->orders()
+            ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
+            ->leftJoin('payments', function ($join) {
+                $join->on('payments.order_id', '=', 'orders.id')
+                     ->whereMonth('payments.payment_date', now()->month)
+                     ->whereYear('payments.payment_date', now()->year);
+            })
+            ->groupBy('orders.currency')
+            ->pluck('total', 'currency')
+            ->map(fn ($v) => (float) $v);
 
         // New clients this month
         $newClientsThisMonth = $user->clients()
@@ -80,15 +100,14 @@ class DashboardController extends Controller
                     'cancelled' => $ordersByStatus['cancelled'] ?? 0,
                 ],
                 'revenue' => [
-                    'total' => (float) $totalRevenue,
-                    'total_paid' => (float) $totalPaid,
-                    'outstanding_balance' => (float) $outstandingBalance,
-                    'this_month' => (float) $revenueThisMonth,
+                    'by_currency'         => $revenuePerCurrency,
+                    'paid_by_currency'    => $paidPerCurrency,
+                    'outstanding_by_currency' => $outstandingPerCurrency,
+                    'this_month_by_currency'  => $revenueThisMonth,
                 ],
                 'payments' => [
-                    'total_received' => (float) $totalPaid,
-                    'this_month' => (float) $paymentsThisMonth,
-                    'orders_with_balance' => $ordersWithBalance,
+                    'this_month_by_currency' => $paymentsThisMonth,
+                    'orders_with_balance'    => $ordersWithBalance,
                 ],
             ]
         );
@@ -185,43 +204,64 @@ class DashboardController extends Controller
         $user = $request->user();
 
         if ($period === 'year') {
-            // Monthly breakdown for current year
+            // Monthly breakdown for current year, grouped by currency
             $data = collect(range(1, 12))->map(function ($month) use ($user) {
                 $revenue = $user->orders()
+                    ->select('currency', DB::raw('SUM(total_amount) as total'))
                     ->whereMonth('created_at', $month)
                     ->whereYear('created_at', now()->year)
-                    ->sum('total_amount');
+                    ->groupBy('currency')
+                    ->pluck('total', 'currency')
+                    ->map(fn ($v) => (float) $v);
 
-                $payments = $user->payments()
-                    ->whereMonth('payment_date', $month)
-                    ->whereYear('payment_date', now()->year)
-                    ->sum('amount');
+                $payments = $user->orders()
+                    ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
+                    ->leftJoin('payments', function ($join) use ($month) {
+                        $join->on('payments.order_id', '=', 'orders.id')
+                             ->whereMonth('payments.payment_date', $month)
+                             ->whereYear('payments.payment_date', now()->year);
+                    })
+                    ->whereMonth('orders.created_at', $month)
+                    ->whereYear('orders.created_at', now()->year)
+                    ->groupBy('orders.currency')
+                    ->pluck('total', 'currency')
+                    ->map(fn ($v) => (float) $v);
 
                 return [
-                    'month' => now()->month($month)->format('M'),
-                    'revenue' => (float) $revenue,
-                    'payments' => (float) $payments,
+                    'month'    => now()->month($month)->format('M'),
+                    'revenue'  => $revenue,
+                    'payments' => $payments,
                 ];
             });
         } else {
-            // Daily breakdown for current month
+            // Daily breakdown for current month, grouped by currency
             $daysInMonth = now()->daysInMonth;
             $data = collect(range(1, $daysInMonth))->map(function ($day) use ($user) {
                 $date = now()->day($day);
 
                 $revenue = $user->orders()
+                    ->select('currency', DB::raw('SUM(total_amount) as total'))
                     ->whereDate('created_at', $date)
-                    ->sum('total_amount');
+                    ->groupBy('currency')
+                    ->pluck('total', 'currency')
+                    ->map(fn ($v) => (float) $v);
 
-                $payments = $user->payments()
-                    ->whereDate('payment_date', $date)
-                    ->sum('amount');
+                $payments = $user->orders()
+                    ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
+                    ->leftJoin('payments', function ($join) use ($date) {
+                        $join->on('payments.order_id', '=', 'orders.id')
+                             ->whereDate('payments.payment_date', $date);
+                    })
+                    ->whereDate('orders.created_at', $date)
+                    ->groupBy('orders.currency')
+                    ->pluck('total', 'currency')
+                    ->map(fn ($v) => (float) $v);
 
                 return [
-                    'day' => $day,
-                    'date' => $date->format('Y-m-d'),
-                    'revenue' => (float) $revenue,
-                    'payments' => (float) $payments,
+                    'day'      => $day,
+                    'date'     => $date->format('Y-m-d'),
+                    'revenue'  => $revenue,
+                    'payments' => $payments,
                 ];
             });
         }

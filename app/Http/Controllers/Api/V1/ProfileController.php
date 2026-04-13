@@ -27,13 +27,10 @@ class ProfileController extends Controller
 
         $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
 
-        if ($emailChanged) {
-            $data['email_verified_at'] = null;
-        }
-
         $user->update($data);
 
         if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null])->save();
             $code = $user->generateVerificationCode();
             $user->notify(new VerifyEmailNotification($code));
         }
