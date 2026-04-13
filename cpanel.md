@@ -35,7 +35,7 @@
     `* * * * * curl https://api.fittingz.app/cron/YOUR_SECRET/queue`
 
 ## Post-Deployment
-- [ ] Test health check: GET /health
+- [ ] Test health check: GET /api/health
 - [ ] Test registration flow
 - [ ] Test login flow
 - [ ] Test password reset

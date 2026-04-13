@@ -56,6 +56,10 @@ GET    /api/v1/styles/{style}
 PATCH  /api/v1/styles/{style}
 DELETE /api/v1/styles/{style}
 
+# PROFILE
+GET    /api/v1/profile
+PATCH  /api/v1/profile                                         # body: {business_name?, contact_phone?, business_address?, email?, email_notifications?}
+
 # DASHBOARD
 GET    /api/v1/dashboard/stats
 GET    /api/v1/dashboard/recent-orders?limit=10
