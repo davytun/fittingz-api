@@ -8,14 +8,15 @@ use App\Http\Controllers\Api\V1\ClientOrderController;
 use App\Http\Controllers\Api\V1\ClientOrderStyleController;
 use App\Http\Controllers\Api\V1\ClientProfileController;
 use App\Http\Controllers\Api\V1\ClientStyleController;
-use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\CronController;
+use App\Http\Controllers\HealthCheckController;
 use Illuminate\Support\Facades\Route;
 
 // Health check
-Route::get('/health', [App\Http\Controllers\HealthCheckController::class, 'check']);
+Route::get('/health', [HealthCheckController::class, 'check']);
 
 // Cron
 Route::get('/cron/{secret}/queue', [CronController::class, 'processQueue'])
@@ -27,7 +28,7 @@ Route::get('/cron/{secret}/run/{command}', [CronController::class, 'runCommand']
 
 // API
 Route::prefix('v1')->group(function () {
-    
+
     // AUTH ROUTES
     Route::prefix('auth')->group(function () {
         Route::middleware('throttle:auth')->group(function () {
@@ -43,7 +44,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/reset-password', [AuthController::class, 'resetPassword']);
         });
 
-
         Route::middleware(['auth:sanctum', 'token.expiration'])->group(function () {
             Route::post('/logout', [AuthController::class, 'logout']);
             Route::post('/refresh', [AuthController::class, 'refresh']);
@@ -53,7 +53,7 @@ Route::prefix('v1')->group(function () {
 
     // PROTECTED ROUTES
     Route::middleware(['auth:sanctum', 'token.expiration', 'throttle:api', 'log.api'])->group(function () {
-        
+
         // PROFILE
         Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
