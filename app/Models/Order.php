@@ -97,9 +97,9 @@ class Order extends Model
     {
         return $this->hasMany(Payment::class);
     }
-    public function styles(): BelongsToMany
+    public function styleImages(): BelongsToMany
     {
-        return $this->belongsToMany(Style::class, 'order_style')
+        return $this->belongsToMany(StyleImage::class, 'order_style_image', 'order_id', 'style_image_id')
             ->withTimestamps();
     }
 
