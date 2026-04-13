@@ -43,7 +43,6 @@ class OrderResource extends JsonResource
             'styles'            => StyleResource::collection($this->whenLoaded('styles')),
             'status'            => $this->status->value,
             'due_date'          => $this->due_date?->format('Y-m-d'),
-            'delivery_date'     => $this->delivery_date?->format('Y-m-d'),
             'notes'             => $this->notes,
             'created_at'        => $this->created_at,
             'updated_at'        => $this->updated_at,

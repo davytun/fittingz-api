@@ -67,7 +67,6 @@ class OrderDocs
                     new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"], default: "NGN", example: "NGN"),
                     new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"], default: "pending_payment"),
                     new OA\Property(property: "due_date", type: "string", format: "date", example: "2025-07-20", description: "Must be today or in the future"),
-                    new OA\Property(property: "delivery_date", type: "string", format: "date", nullable: true, description: "Must be on or after due date"),
                     new OA\Property(property: "notes", type: "string", maxLength: 2000, nullable: true, example: "Rush order for wedding"),
                     new OA\Property(property: "deposit", type: "number", format: "float", nullable: true, minimum: 0, example: 5000, description: "Optional upfront deposit — recorded as an initial payment via cash")
                 ]
@@ -119,7 +118,6 @@ class OrderDocs
                     new OA\Property(property: "total_amount", type: "number", format: "float", minimum: 0),
                     new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"]),
                     new OA\Property(property: "due_date", type: "string", format: "date"),
-                    new OA\Property(property: "delivery_date", type: "string", format: "date"),
                     new OA\Property(property: "notes", type: "string", maxLength: 2000)
                 ]
             )

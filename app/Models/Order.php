@@ -16,6 +16,7 @@ class Order extends Model
     use HasFactory;
 
     protected $keyType = 'string';
+
     public $incrementing = false;
 
     protected $fillable = [
@@ -30,19 +31,17 @@ class Order extends Model
         'currency',
         'status',
         'due_date',
-        'delivery_date',
         'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'status'       => OrderStatus::class,
-            'currency'     => Currency::class,
+            'status' => OrderStatus::class,
+            'currency' => Currency::class,
             'total_amount' => 'decimal:2',
-            'details'      => 'array',
-            'due_date'     => 'date',
-            'delivery_date' => 'date',
+            'details' => 'array',
+            'due_date' => 'date',
         ];
     }
 
@@ -97,6 +96,7 @@ class Order extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
     public function styleImages(): BelongsToMany
     {
         return $this->belongsToMany(StyleImage::class, 'order_style_image', 'order_id', 'style_image_id')
