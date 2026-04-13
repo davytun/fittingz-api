@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -26,13 +27,23 @@ class ProfileController extends Controller
         $data = $request->validated();
 
         $emailChanged = isset($data['email']) && $data['email'] !== $user->email;
+        $code = null;
 
-        $user->update($data);
+        DB::transaction(function () use ($user, $data, $emailChanged, &$code): void {
+            $user->update($data);
+
+            if ($emailChanged) {
+                $user->forceFill(['email_verified_at' => null])->save();
+                $code = $user->generateVerificationCode();
+            }
+        });
 
         if ($emailChanged) {
-            $user->forceFill(['email_verified_at' => null])->save();
-            $code = $user->generateVerificationCode();
-            $user->notify(new VerifyEmailNotification($code));
+            try {
+                $user->notify(new VerifyEmailNotification($code));
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
 
         return ApiResponse::success(

@@ -48,7 +48,7 @@ class MeasurementDocs
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "fields", "unit", "measurement_date"],
+                required: ["name", "fields"],
                 properties: [
                     new OA\Property(property: "name", type: "string", maxLength: 255, example: "Pants Measurement"),
                     new OA\Property(property: "fields", type: "object", minProperties: 1, example: ["waist" => "32", "inseam" => "30", "thigh" => "22"], description: "Key-value pairs of body parts and their measurements"),

@@ -1135,10 +1135,6 @@
                                                             "type": "integer",
                                                             "example": 120
                                                         },
-                                                        "pending": {
-                                                            "type": "integer",
-                                                            "example": 10
-                                                        },
                                                         "pending_payment": {
                                                             "type": "integer",
                                                             "example": 10
@@ -1804,9 +1800,7 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "fields",
-                                    "unit",
-                                    "measurement_date"
+                                    "fields"
                                 ],
                                 "properties": {
                                     "name": {

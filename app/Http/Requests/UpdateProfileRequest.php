@@ -40,19 +40,19 @@ class UpdateProfileRequest extends BaseRequest
     {
         $merge = [];
 
-        if ($this->has('business_name')) {
+        if ($this->has('business_name') && is_string($this->business_name)) {
             $merge['business_name'] = trim($this->business_name);
         }
 
-        if ($this->has('contact_phone')) {
+        if ($this->has('contact_phone') && is_string($this->contact_phone)) {
             $merge['contact_phone'] = trim($this->contact_phone);
         }
 
-        if ($this->has('business_address')) {
+        if ($this->has('business_address') && is_string($this->business_address)) {
             $merge['business_address'] = trim($this->business_address);
         }
 
-        if ($this->has('email')) {
+        if ($this->has('email') && is_string($this->email)) {
             $merge['email'] = strtolower(trim($this->email));
         }
 

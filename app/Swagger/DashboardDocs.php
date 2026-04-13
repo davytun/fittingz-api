@@ -22,7 +22,6 @@ class DashboardDocs
                     ]),
                     new OA\Property(property: "orders", type: "object", properties: [
                         new OA\Property(property: "total", type: "integer", example: 120),
-                        new OA\Property(property: "pending", type: "integer", example: 10),
                         new OA\Property(property: "pending_payment", type: "integer", example: 10),
                         new OA\Property(property: "in_progress", type: "integer", example: 25),
                         new OA\Property(property: "completed", type: "integer", example: 60),

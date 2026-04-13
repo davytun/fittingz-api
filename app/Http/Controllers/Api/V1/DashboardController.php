@@ -92,7 +92,6 @@ class DashboardController extends Controller
                 ],
                 'orders' => [
                     'total' => $totalOrders,
-                    'pending' => $ordersByStatus['pending_payment'] ?? 0,
                     'pending_payment' => $ordersByStatus['pending_payment'] ?? 0,
                     'in_progress' => $ordersByStatus['in_progress'] ?? 0,
                     'completed' => $ordersByStatus['completed'] ?? 0,
@@ -221,8 +220,6 @@ class DashboardController extends Controller
                              ->whereMonth('payments.payment_date', $month)
                              ->whereYear('payments.payment_date', now()->year);
                     })
-                    ->whereMonth('orders.created_at', $month)
-                    ->whereYear('orders.created_at', now()->year)
                     ->groupBy('orders.currency')
                     ->pluck('total', 'currency')
                     ->map(fn ($v) => (float) $v);
@@ -252,7 +249,6 @@ class DashboardController extends Controller
                         $join->on('payments.order_id', '=', 'orders.id')
                              ->whereDate('payments.payment_date', $date);
                     })
-                    ->whereDate('orders.created_at', $date)
                     ->groupBy('orders.currency')
                     ->pluck('total', 'currency')
                     ->map(fn ($v) => (float) $v);
