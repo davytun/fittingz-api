@@ -16,6 +16,7 @@ class VerifyEmailNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
+        // Verification emails always send regardless of email_notifications preference
         return ['mail'];
     }
 

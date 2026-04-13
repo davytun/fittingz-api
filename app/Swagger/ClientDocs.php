@@ -48,8 +48,8 @@ class ClientDocs
                 required: ["name"],
                 properties: [
                     new OA\Property(property: "name", type: "string", minLength: 2, maxLength: 255, example: "Jane Smith"),
-                    new OA\Property(property: "email", type: "string", format: "email", maxLength: 255, example: "jane.smith@example.com", nullable: true, description: "Must be unique. Required if phone is not provided."),
-                    new OA\Property(property: "phone", type: "string", minLength: 10, maxLength: 20, example: "+1234567890", nullable: true, description: "Must be unique. Required if email is not provided."),
+                    new OA\Property(property: "email", type: "string", format: "email", maxLength: 255, example: "jane.smith@example.com", nullable: true, description: "Must be unique. Either email or phone is required."),
+                    new OA\Property(property: "phone", type: "string", minLength: 10, maxLength: 20, example: "+1234567890", nullable: true, description: "Must be unique. Either phone or email is required."),
                     new OA\Property(property: "gender", type: "string", enum: ["Male", "Female", "Other"], example: "Female", nullable: true, description: "Optional.")
                 ]
             )
@@ -127,7 +127,7 @@ class ClientDocs
 
     #[OA\Get(
         path: "/api/v1/clients/{client}/profile",
-        summary: "Get full client profile including measurements and orders",
+        summary: "Get full client profile including measurement summary",
         tags: ["Clients"],
         security: [["bearerAuth" => []]],
         parameters: [

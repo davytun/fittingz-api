@@ -32,7 +32,7 @@ class ApiResponse
 
     public static function validationError(
         array $errors,
-        string $message = null
+        ?string $message = null
     ): JsonResponse {
         $formattedErrors = [];
 

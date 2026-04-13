@@ -119,7 +119,7 @@ class NestedApiAuthorizationTest extends TestCase
             'description' => 'Tailored order',
             'quantity' => 1,
             'total_amount' => $totalAmount,
-            'status' => 'pending',
+            'status' => 'pending_payment',
             'due_date' => now()->addWeek()->toDateString(),
         ]);
     }

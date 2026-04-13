@@ -11,18 +11,13 @@ REST API for fashion designers and tailoring businesses to manage clients, measu
 
 ## Features
 
-### Authentication
-- User registration with email verification
-- Login with account lockout (5 failed attempts = 30min lock)
-- Password reset with 4-digit code
-- Token-based auth (7-day expiration)
-- Rate limiting on all auth endpoints
-
-### Core Modules (Coming Soon)
-- Client Management
-- Measurement Tracking
-- Style Inspirations
-- Order Management
+- Authentication with email verification, token refresh, throttling, and password reset flow
+- Client management with search, gender filtering, and profile summary endpoints
+- Measurement management with named profiles, `fields`-based measurement data, and default measurement selection
+- Order management with nested client routes, optional measurement linking, currency support, garment `details`, and `style_description`
+- Payment tracking under each order, including automatic initial payment creation from order `deposit`
+- Style catalog management plus order-to-style attachment endpoints
+- Dashboard analytics for stats, recent orders, pending payments, deliveries, revenue, and top clients
 
 ## Installation
 
@@ -30,7 +25,7 @@ REST API for fashion designers and tailoring businesses to manage clients, measu
 - PHP 8.2+
 - Composer
 - MySQL
-- Node.js (for queue processing in production)
+- Node.js and npm (for frontend asset builds)
 
 ### Setup
 
@@ -117,6 +112,17 @@ php artisan route:cache
 ## API Documentation
 
 Base URL: `/api/v1`
+
+For the current route map and example payloads, see [route.md](route.md).
+
+### Current API Notes
+
+- Client measurements are managed under `/clients/{client}/measurements` and use a `fields` object instead of `measurements`.
+- Client orders are managed under `/clients/{client}/orders`.
+- Order payments are nested under `/clients/{client}/orders/{order}/payments`.
+- Order status values are `pending_payment`, `in_progress`, `completed`, `delivered`, and `cancelled`.
+- Order payloads now support `currency`, `details`, `style_description`, and optional `deposit`.
+- `deposit` on order creation records an initial payment automatically.
 
 ### Authentication Endpoints
 

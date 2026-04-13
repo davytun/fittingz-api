@@ -27,8 +27,12 @@ class OrderResource extends JsonResource
             'style_description' => $this->style_description,
             'total_amount'      => (float) $this->total_amount,
             'currency'          => $this->currency->value,
-            'total_paid'        => $this->total_paid,
-            'balance'           => $this->balance,
+            'total_paid'        => array_key_exists('payments_sum_amount', $this->resource->getAttributes())
+                                    ? (float) ($this->payments_sum_amount ?? 0)
+                                    : $this->total_paid,
+            'balance'           => array_key_exists('payments_sum_amount', $this->resource->getAttributes())
+                                    ? (float) ($this->total_amount - ($this->payments_sum_amount ?? 0))
+                                    : $this->balance,
             'payment_status'    => $this->payment_status,
             'payments_count'    => $this->when(
                 isset($this->payments_count),

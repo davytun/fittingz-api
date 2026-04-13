@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\ClientProfileController;
 use App\Http\Controllers\Api\V1\OrderPaymentController;
 use App\Http\Controllers\Api\V1\StyleController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\CronController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,10 @@ Route::prefix('v1')->group(function () {
     // PROTECTED ROUTES
     Route::middleware(['auth:sanctum', 'token.expiration', 'throttle:api', 'log.api'])->group(function () {
         
+        // PROFILE
+        Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+
         // CLIENTS
         Route::get('clients', [ClientController::class, 'index'])->name('clients.index');
         Route::post('clients', [ClientController::class, 'store'])->name('clients.store');
