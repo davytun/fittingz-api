@@ -48,8 +48,8 @@ class StoreMeasurementRequest extends BaseRequest
         $fields = $this->fields;
 
         $mergeData = [
-            'unit'             => $this->unit ?: 'inches',
-            'measurement_date' => $this->measurement_date ?: now()->toDateString(),
+            'unit'             => $this->unit ?? 'inches',
+            'measurement_date' => $this->measurement_date ?? now()->toDateString(),
             'notes'            => is_string($this->notes) ? trim($this->notes) : null,
             'name'             => is_string($this->name) ? trim($this->name) : $this->name,
         ];

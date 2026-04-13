@@ -16,15 +16,16 @@ class StoreOrderRequest extends BaseRequest
     {
         $userId = $this->user()->id;
         $client = $this->route('client');
+        $clientId = $client instanceof \Illuminate\Database\Eloquent\Model ? $client->getKey() : $client;
 
         return [
             'measurement_id'    => [
                 'nullable',
                 'uuid',
-                Rule::exists('measurements', 'id')->where(function ($query) use ($userId, $client) {
+                Rule::exists('measurements', 'id')->where(function ($query) use ($userId, $clientId) {
                     $query->where('user_id', $userId);
-                    if ($client) {
-                        $query->where('client_id', $client->getKey());
+                    if ($clientId) {
+                        $query->where('client_id', $clientId);
                     }
                 }),
             ],
