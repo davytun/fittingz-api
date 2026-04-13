@@ -7,6 +7,138 @@ use OpenApi\Attributes as OA;
 class DashboardDocs
 {
     #[OA\Get(
+        path: "/api/v1/dashboard",
+        summary: "Get comprehensive dashboard data including batch data and analytics",
+        description: "Fetches all dashboard statistics, recent clients, orders, and updates in a single API call for better performance.",
+        tags: ["Dashboard"],
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "entities",
+                in: "query",
+                description: "Comma-separated list of entities to fetch",
+                required: false,
+                schema: new OA\Schema(
+                    type: "string",
+                    default: "clients,orders,projects,events,gallery",
+                    example: "clients,orders,projects,events,gallery"
+                )
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Comprehensive dashboard data retrieved successfully",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(
+                            property: "summary",
+                            type: "object",
+                            properties: [
+                                new OA\Property(property: "totalClients", type: "integer", example: 42),
+                                new OA\Property(property: "totalOrders", type: "integer", example: 120),
+                                new OA\Property(property: "totalRevenue", type: "number", format: "float", example: 85000.00)
+                            ]
+                        ),
+                        new OA\Property(
+                            property: "recentClients",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "string", format: "uuid"),
+                                    new OA\Property(property: "name", type: "string"),
+                                    new OA\Property(property: "phone", type: "string", nullable: true),
+                                    new OA\Property(property: "email", type: "string", nullable: true),
+                                    new OA\Property(property: "gender", type: "string", enum: ["Male", "Female", "Other"], nullable: true),
+                                    new OA\Property(property: "adminId", type: "string", format: "uuid"),
+                                    new OA\Property(property: "createdAt", type: "string", format: "date-time"),
+                                    new OA\Property(property: "updatedAt", type: "string", format: "date-time"),
+                                    new OA\Property(property: "measurements", type: "array", items: new OA\Items(type: "object")),
+                                    new OA\Property(property: "styleImages", type: "array", items: new OA\Items(type: "object")),
+                                    new OA\Property(
+                                        property: "_count",
+                                        type: "object",
+                                        properties: [
+                                            new OA\Property(property: "measurements", type: "integer"),
+                                            new OA\Property(property: "styleImages", type: "integer")
+                                        ]
+                                    )
+                                ]
+                            )
+                        ),
+                        new OA\Property(
+                            property: "recentOrders",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "string", format: "uuid"),
+                                    new OA\Property(property: "orderNumber", type: "string"),
+                                    new OA\Property(property: "price", type: "number", format: "float"),
+                                    new OA\Property(property: "currency", type: "string", enum: ["NGN", "USD", "GBP", "EUR"]),
+                                    new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"]),
+                                    new OA\Property(property: "outstandingAmount", type: "number", format: "float"),
+                                    new OA\Property(
+                                        property: "client",
+                                        type: "object",
+                                        nullable: true,
+                                        properties: [
+                                            new OA\Property(property: "id", type: "string", format: "uuid"),
+                                            new OA\Property(property: "name", type: "string")
+                                        ]
+                                    ),
+                                    new OA\Property(property: "payments", type: "array", items: new OA\Items(type: "object")),
+                                    new OA\Property(property: "styleImages", type: "array", items: new OA\Items(type: "object")),
+                                    new OA\Property(property: "details", type: "object", nullable: true),
+                                    new OA\Property(property: "dueDate", type: "string", format: "date", nullable: true),
+                                    new OA\Property(property: "deposit", type: "number", format: "float"),
+                                    new OA\Property(property: "styleDescription", type: "string", nullable: true),
+                                    new OA\Property(property: "note", type: "string", nullable: true),
+                                    new OA\Property(property: "totalPaid", type: "number", format: "float"),
+                                    new OA\Property(property: "outstandingBalance", type: "number", format: "float"),
+                                    new OA\Property(property: "createdAt", type: "string", format: "date-time"),
+                                    new OA\Property(property: "updatedAt", type: "string", format: "date-time"),
+                                    new OA\Property(property: "project", type: "object", nullable: true),
+                                    new OA\Property(property: "event", type: "object", nullable: true),
+                                    new OA\Property(property: "measurement", type: "object", nullable: true)
+                                ]
+                            )
+                        ),
+                        new OA\Property(
+                            property: "orderStats",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "status", type: "string", enum: ["pending_payment", "in_progress", "completed", "delivered", "cancelled"]),
+                                    new OA\Property(property: "_count", type: "integer"),
+                                    new OA\Property(property: "_sum", type: "number", format: "float")
+                                ]
+                            )
+                        ),
+                        new OA\Property(
+                            property: "recentUpdates",
+                            type: "array",
+                            items: new OA\Items(
+                                properties: [
+                                    new OA\Property(property: "id", type: "string"),
+                                    new OA\Property(property: "type", type: "string", enum: ["CLIENT_CREATED", "ORDER_CREATED"]),
+                                    new OA\Property(property: "title", type: "string"),
+                                    new OA\Property(property: "description", type: "string"),
+                                    new OA\Property(property: "entityId", type: "string", format: "uuid"),
+                                    new OA\Property(property: "entityType", type: "string", enum: ["client", "order"]),
+                                    new OA\Property(property: "createdAt", type: "string", format: "date-time")
+                                ]
+                            )
+                        )
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: "Unauthorized"),
+            new OA\Response(response: 500, description: "Internal server error")
+        ]
+    )]
+    public function index() {}
+
+    #[OA\Get(
         path: "/api/v1/dashboard/stats",
         summary: "Get overall business statistics",
         tags: ["Dashboard"],
