@@ -125,7 +125,7 @@ class ClientOrderController extends Controller
 
         $this->authorize('view', $order);
 
-        $order->loadCount('payments')->load(['measurement', 'payments', 'styles']);
+        $order->loadCount('payments')->load(['measurement', 'payments', 'styleImages']);
 
         return ApiResponse::success(
             'Order retrieved successfully',
