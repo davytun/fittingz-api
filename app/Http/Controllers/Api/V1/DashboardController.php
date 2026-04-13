@@ -228,7 +228,7 @@ class DashboardController extends Controller
                     ->map(fn ($v) => (float) $v);
 
                 return [
-                    'month'    => now()->month($month)->format('M'),
+                    'month'    => now()->startOfYear()->addMonths($month - 1)->format('M'),
                     'revenue'  => $revenue,
                     'payments' => $payments,
                 ];
