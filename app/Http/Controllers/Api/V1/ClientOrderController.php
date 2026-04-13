@@ -92,7 +92,6 @@ class ClientOrderController extends Controller
                 'currency'          => $request->currency ?? 'NGN',
                 'status'            => $request->status ?? 'pending_payment',
                 'due_date'          => $request->due_date,
-                'delivery_date'     => $request->delivery_date,
                 'notes'             => $request->notes,
             ]);
 

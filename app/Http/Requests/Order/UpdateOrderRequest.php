@@ -21,7 +21,6 @@ class UpdateOrderRequest extends BaseRequest
             'total_amount'      => ['sometimes', 'required', 'numeric', 'min:0', 'max:99999999.99'],
             'currency'          => ['sometimes', Rule::in(['NGN', 'USD', 'GBP', 'EUR'])],
             'due_date'          => ['nullable', 'date'],
-            'delivery_date'     => ['nullable', 'date', 'after_or_equal:due_date'],
             'notes'             => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -33,7 +32,6 @@ class UpdateOrderRequest extends BaseRequest
             'total_amount.min'             => 'Total amount must be at least 0',
             'total_amount.max'             => 'Total amount is too large',
             'currency.in'                  => 'Currency must be one of: NGN, USD, GBP, EUR',
-            'delivery_date.after_or_equal' => 'Delivery date must be on or after due date',
         ];
     }
 
