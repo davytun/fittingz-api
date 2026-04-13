@@ -29,15 +29,14 @@ class DashboardDocs
                         new OA\Property(property: "delivered", type: "integer", example: 20),
                         new OA\Property(property: "cancelled", type: "integer", example: 5)
                     ]),
-                    new OA\Property(property: "revenue", type: "object", properties: [
-                        new OA\Property(property: "total", type: "number", format: "float", example: 85000.00),
-                        new OA\Property(property: "total_paid", type: "number", format: "float", example: 72000.00),
-                        new OA\Property(property: "outstanding_balance", type: "number", format: "float", example: 13000.00),
-                        new OA\Property(property: "this_month", type: "number", format: "float", example: 9500.00)
+                    new OA\Property(property: "revenue", type: "object", description: "Amounts keyed by currency code (e.g. NGN, USD)", properties: [
+                        new OA\Property(property: "by_currency", type: "object", example: ["NGN" => 85000.00, "USD" => 200.00]),
+                        new OA\Property(property: "paid_by_currency", type: "object", example: ["NGN" => 72000.00, "USD" => 150.00]),
+                        new OA\Property(property: "outstanding_by_currency", type: "object", example: ["NGN" => 13000.00, "USD" => 50.00]),
+                        new OA\Property(property: "this_month_by_currency", type: "object", example: ["NGN" => 9500.00])
                     ]),
                     new OA\Property(property: "payments", type: "object", properties: [
-                        new OA\Property(property: "total_received", type: "number", format: "float", example: 72000.00),
-                        new OA\Property(property: "this_month", type: "number", format: "float", example: 8200.00),
+                        new OA\Property(property: "this_month_by_currency", type: "object", example: ["NGN" => 8200.00]),
                         new OA\Property(property: "orders_with_balance", type: "integer", example: 18)
                     ])
                 ])
@@ -149,8 +148,8 @@ class DashboardDocs
                         new OA\Property(property: "day", type: "integer", example: 1, description: "Day of month (only present when period=month)"),
                         new OA\Property(property: "date", type: "string", format: "date", example: "2024-04-01", description: "Date (only present when period=month)"),
                         new OA\Property(property: "month", type: "string", example: "Jan", description: "Month abbreviation (only present when period=year)"),
-                        new OA\Property(property: "revenue", type: "number", format: "float", example: 1200.00),
-                        new OA\Property(property: "payments", type: "number", format: "float", example: 900.00)
+                        new OA\Property(property: "revenue", type: "object", description: "Revenue keyed by currency code", example: ["NGN" => 1200.00]),
+                        new OA\Property(property: "payments", type: "object", description: "Payments keyed by currency code", example: ["NGN" => 900.00])
                     ]))
                 ])
             ])),

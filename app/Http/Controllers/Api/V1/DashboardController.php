@@ -138,8 +138,8 @@ class DashboardController extends Controller
         $orders = $request->user()->orders()
             ->with(['client', 'measurement'])
             ->withSum('payments', 'amount')
-            ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
-            ->orderByRaw('(total_amount - (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)) DESC')
+            ->havingRaw('total_amount > COALESCE(payments_sum_amount, 0)')
+            ->orderByRaw('(total_amount - COALESCE(payments_sum_amount, 0)) DESC')
             ->get();
 
         $totalOutstanding = $orders->sum(fn($order) => $order->total_amount - ($order->payments_sum_amount ?? 0));

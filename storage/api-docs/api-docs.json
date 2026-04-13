@@ -1163,41 +1163,45 @@
                                                     "type": "object"
                                                 },
                                                 "revenue": {
+                                                    "description": "Amounts keyed by currency code (e.g. NGN, USD)",
                                                     "properties": {
-                                                        "total": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 85000
+                                                        "by_currency": {
+                                                            "type": "object",
+                                                            "example": {
+                                                                "NGN": 85000,
+                                                                "USD": 200
+                                                            }
                                                         },
-                                                        "total_paid": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 72000
+                                                        "paid_by_currency": {
+                                                            "type": "object",
+                                                            "example": {
+                                                                "NGN": 72000,
+                                                                "USD": 150
+                                                            }
                                                         },
-                                                        "outstanding_balance": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 13000
+                                                        "outstanding_by_currency": {
+                                                            "type": "object",
+                                                            "example": {
+                                                                "NGN": 13000,
+                                                                "USD": 50
+                                                            }
                                                         },
-                                                        "this_month": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 9500
+                                                        "this_month_by_currency": {
+                                                            "type": "object",
+                                                            "example": {
+                                                                "NGN": 9500
+                                                            }
                                                         }
                                                     },
                                                     "type": "object"
                                                 },
                                                 "payments": {
                                                     "properties": {
-                                                        "total_received": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 72000
-                                                        },
-                                                        "this_month": {
-                                                            "type": "number",
-                                                            "format": "float",
-                                                            "example": 8200
+                                                        "this_month_by_currency": {
+                                                            "type": "object",
+                                                            "example": {
+                                                                "NGN": 8200
+                                                            }
                                                         },
                                                         "orders_with_balance": {
                                                             "type": "integer",
@@ -1540,14 +1544,18 @@
                                                                 "example": "Jan"
                                                             },
                                                             "revenue": {
-                                                                "type": "number",
-                                                                "format": "float",
-                                                                "example": 1200
+                                                                "description": "Revenue keyed by currency code",
+                                                                "type": "object",
+                                                                "example": {
+                                                                    "NGN": 1200
+                                                                }
                                                             },
                                                             "payments": {
-                                                                "type": "number",
-                                                                "format": "float",
-                                                                "example": 900
+                                                                "description": "Payments keyed by currency code",
+                                                                "type": "object",
+                                                                "example": {
+                                                                    "NGN": 900
+                                                                }
                                                             }
                                                         },
                                                         "type": "object"
