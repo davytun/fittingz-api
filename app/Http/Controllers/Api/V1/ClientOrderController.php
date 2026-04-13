@@ -26,8 +26,8 @@ class ClientOrderController extends Controller
         // Base: always include payment summary via withCount (no N+1)
         $query = $client->orders()->withCount('payments');
 
-        // Conditional eager loading via ?include=measurement,styles
-        $allowed  = ['measurement', 'styles'];
+        // Conditional eager loading via ?include=measurement,styleImages
+        $allowed  = ['measurement', 'styleImages'];
         $includes = array_intersect(
             explode(',', $request->query('include', '')),
             $allowed

@@ -31,10 +31,10 @@ PATCH  /api/v1/clients/{client}/measurements/{measurement}/set-default
 DELETE /api/v1/clients/{client}/measurements/{measurement}
 
 # CLIENT ORDERS
-GET    /api/v1/clients/{client}/orders?status=pending_payment&search=agbada&include=measurement,styles
-POST   /api/v1/clients/{client}/orders                         # body: {measurement_id?, details?, style_description?, total_amount, currency?, status?, due_date?, delivery_date?, notes?, deposit?}
+GET    /api/v1/clients/{client}/orders?status=pending_payment&search=agbada&include=measurement,styleImages
+POST   /api/v1/clients/{client}/orders                         # body: {measurement_id?, details?, style_description?, total_amount, currency?, status?, due_date?, notes?, deposit?}
 GET    /api/v1/clients/{client}/orders/{order}
-PATCH  /api/v1/clients/{client}/orders/{order}                 # body: {details?, style_description?, total_amount?, currency?, due_date?, delivery_date?, notes?}
+PATCH  /api/v1/clients/{client}/orders/{order}                 # body: {details?, style_description?, total_amount?, currency?, due_date?, notes?}
 PATCH  /api/v1/clients/{client}/orders/{order}/status          # body: {status}
 PATCH  /api/v1/clients/{client}/orders/{order}/measurement     # body: {measurement_id}
 DELETE /api/v1/clients/{client}/orders/{order}
