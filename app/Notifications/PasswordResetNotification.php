@@ -15,6 +15,8 @@ class PasswordResetNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
+        // Password reset emails always send regardless of email_notifications preference
+        // because they are transactional security emails explicitly requested by the user.
         return ['mail'];
     }
 

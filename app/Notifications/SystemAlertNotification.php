@@ -18,6 +18,9 @@ class SystemAlertNotification extends Notification
 
     public function via(object $notifiable): array
     {
+        // System alert emails always send regardless of email_notifications preference
+        // because they target internal admin users only (config('app.admin_email')),
+        // not regular end users.
         return ['mail'];
     }
 

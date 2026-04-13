@@ -599,7 +599,7 @@
                                 "required": [
                                     "current_password",
                                     "new_password",
-                                    "password_confirmation"
+                                    "new_password_confirmation"
                                 ],
                                 "properties": {
                                     "current_password": {
@@ -611,7 +611,7 @@
                                         "format": "password",
                                         "minLength": 8
                                     },
-                                    "password_confirmation": {
+                                    "new_password_confirmation": {
                                         "type": "string",
                                         "format": "password"
                                     }
