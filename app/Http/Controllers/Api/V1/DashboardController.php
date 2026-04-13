@@ -14,6 +14,159 @@ use Illuminate\Support\Facades\DB;
  */
 class DashboardController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Parse entities parameter
+        $entities = explode(',', $request->input('entities', 'clients,orders,projects,events,gallery'));
+        $entities = array_intersect($entities, ['clients', 'orders', 'projects', 'events', 'gallery']);
+
+        $data = [];
+
+        // Summary statistics
+        if (in_array('clients', $entities) || in_array('orders', $entities)) {
+            $data['summary'] = [
+                'totalClients' => $user->clients()->count(),
+                'totalOrders' => $user->orders()->count(),
+                'totalRevenue' => (float) $user->orders()->sum('total_amount'),
+            ];
+        }
+
+        // Recent clients
+        if (in_array('clients', $entities)) {
+            $data['recentClients'] = $user->clients()
+                ->withCount(['measurements', 'styleImages'])
+                ->with(['measurements:id,name', 'styleImages:id,image_url'])
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->map(function ($client) {
+                    return [
+                        'id' => $client->id,
+                        'name' => $client->name,
+                        'phone' => $client->phone,
+                        'email' => $client->email,
+                        'gender' => $client->gender?->value,
+                        'adminId' => $client->user_id,
+                        'createdAt' => $client->created_at,
+                        'updatedAt' => $client->updated_at,
+                        'measurements' => $client->measurements->take(3),
+                        'styleImages' => $client->styleImages->take(3),
+                        '_count' => [
+                            'measurements' => $client->measurements_count,
+                            'styleImages' => $client->styleImages_count,
+                        ],
+                    ];
+                });
+        }
+
+        // Recent orders
+        if (in_array('orders', $entities)) {
+            $data['recentOrders'] = $user->orders()
+                ->with(['client:id,name', 'measurement:id,name', 'payments', 'styleImages:id,image_url'])
+                ->withSum('payments', 'amount')
+                ->latest()
+                ->limit(10)
+                ->get()
+                ->map(function ($order) {
+                    return [
+                        'id' => $order->id,
+                        'orderNumber' => $order->order_number,
+                        'price' => (float) $order->total_amount,
+                        'currency' => $order->currency->value,
+                        'status' => $order->status->value,
+                        'outstandingAmount' => (float) ($order->total_amount - ($order->payments_sum_amount ?? 0)),
+                        'client' => $order->client ? [
+                            'id' => $order->client->id,
+                            'name' => $order->client->name,
+                        ] : null,
+                        'payments' => $order->payments->take(3),
+                        'styleImages' => $order->styleImages->take(3),
+                        'details' => $order->details,
+                        'dueDate' => $order->due_date,
+                        'deposit' => (float) ($order->payments->where('notes', 'Initial deposit')->sum('amount')),
+                        'styleDescription' => $order->style_description,
+                        'note' => $order->notes,
+                        'totalPaid' => (float) ($order->payments_sum_amount ?? 0),
+                        'outstandingBalance' => (float) ($order->total_amount - ($order->payments_sum_amount ?? 0)),
+                        'createdAt' => $order->created_at,
+                        'updatedAt' => $order->updated_at,
+                        'project' => null, // Placeholder for future projects feature
+                        'event' => null, // Placeholder for future events feature
+                        'measurement' => $order->measurement,
+                    ];
+                });
+
+            // Order stats by status
+            $data['orderStats'] = $user->orders()
+                ->select('status', DB::raw('count(*) as _count'), DB::raw('sum(total_amount) as _sum'))
+                ->groupBy('status')
+                ->get()
+                ->map(function ($stat) {
+                    return [
+                        'status' => $stat->status->value,
+                        '_count' => (int) $stat->_count,
+                        '_sum' => (float) $stat->_sum,
+                    ];
+                });
+        }
+
+        // Recent updates (activity log)
+        $data['recentUpdates'] = collect([]);
+
+        // Recent client creations
+        if (in_array('clients', $entities)) {
+            $recentClients = $user->clients()
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(function ($client) {
+                    return [
+                        'id' => 'client_'.$client->id,
+                        'type' => 'CLIENT_CREATED',
+                        'title' => 'New Client Added',
+                        'description' => "Client {$client->name} was added to the system",
+                        'entityId' => $client->id,
+                        'entityType' => 'client',
+                        'createdAt' => $client->created_at,
+                    ];
+                });
+            $data['recentUpdates'] = $data['recentUpdates']->merge($recentClients);
+        }
+
+        // Recent order creations
+        if (in_array('orders', $entities)) {
+            $recentOrders = $user->orders()
+                ->latest()
+                ->limit(5)
+                ->get()
+                ->map(function ($order) {
+                    return [
+                        'id' => 'order_'.$order->id,
+                        'type' => 'ORDER_CREATED',
+                        'title' => 'New Order Created',
+                        'description' => "Order {$order->order_number} was created for ".($order->client->name ?? 'Unknown Client'),
+                        'entityId' => $order->id,
+                        'entityType' => 'order',
+                        'createdAt' => $order->created_at,
+                    ];
+                });
+            $data['recentUpdates'] = $data['recentUpdates']->merge($recentOrders);
+        }
+
+        // Sort recent updates by created_at desc and take top 10
+        $data['recentUpdates'] = $data['recentUpdates']
+            ->sortByDesc('createdAt')
+            ->take(10)
+            ->values();
+
+        return ApiResponse::success(
+            'Comprehensive dashboard data retrieved successfully',
+            $data
+        );
+    }
+
     public function stats(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -70,8 +223,8 @@ class DashboardController extends Controller
             ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
             ->leftJoin('payments', function ($join) {
                 $join->on('payments.order_id', '=', 'orders.id')
-                     ->whereMonth('payments.payment_date', now()->month)
-                     ->whereYear('payments.payment_date', now()->year);
+                    ->whereMonth('payments.payment_date', now()->month)
+                    ->whereYear('payments.payment_date', now()->year);
             })
             ->groupBy('orders.currency')
             ->pluck('total', 'currency')
@@ -99,14 +252,14 @@ class DashboardController extends Controller
                     'cancelled' => $ordersByStatus['cancelled'] ?? 0,
                 ],
                 'revenue' => [
-                    'by_currency'         => $revenuePerCurrency,
-                    'paid_by_currency'    => $paidPerCurrency,
+                    'by_currency' => $revenuePerCurrency,
+                    'paid_by_currency' => $paidPerCurrency,
                     'outstanding_by_currency' => $outstandingPerCurrency,
-                    'this_month_by_currency'  => $revenueThisMonth,
+                    'this_month_by_currency' => $revenueThisMonth,
                 ],
                 'payments' => [
                     'this_month_by_currency' => $paymentsThisMonth,
-                    'orders_with_balance'    => $ordersWithBalance,
+                    'orders_with_balance' => $ordersWithBalance,
                 ],
             ]
         );
@@ -139,10 +292,10 @@ class DashboardController extends Controller
             ->withSum('payments', 'amount')
             ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
             ->get()
-            ->sortByDesc(fn($order) => $order->total_amount - ($order->payments_sum_amount ?? 0))
+            ->sortByDesc(fn ($order) => $order->total_amount - ($order->payments_sum_amount ?? 0))
             ->values();
 
-        $totalOutstanding = $orders->sum(fn($order) => $order->total_amount - ($order->payments_sum_amount ?? 0));
+        $totalOutstanding = $orders->sum(fn ($order) => $order->total_amount - ($order->payments_sum_amount ?? 0));
 
         return ApiResponse::success(
             'Pending payments retrieved successfully',
@@ -218,16 +371,16 @@ class DashboardController extends Controller
                     ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
                     ->leftJoin('payments', function ($join) use ($month) {
                         $join->on('payments.order_id', '=', 'orders.id')
-                             ->whereMonth('payments.payment_date', $month)
-                             ->whereYear('payments.payment_date', now()->year);
+                            ->whereMonth('payments.payment_date', $month)
+                            ->whereYear('payments.payment_date', now()->year);
                     })
                     ->groupBy('orders.currency')
                     ->pluck('total', 'currency')
                     ->map(fn ($v) => (float) $v);
 
                 return [
-                    'month'    => now()->startOfYear()->addMonths($month - 1)->format('M'),
-                    'revenue'  => $revenue,
+                    'month' => now()->startOfYear()->addMonths($month - 1)->format('M'),
+                    'revenue' => $revenue,
                     'payments' => $payments,
                 ];
             });
@@ -248,16 +401,16 @@ class DashboardController extends Controller
                     ->select('orders.currency', DB::raw('COALESCE(SUM(payments.amount), 0) as total'))
                     ->leftJoin('payments', function ($join) use ($date) {
                         $join->on('payments.order_id', '=', 'orders.id')
-                             ->whereDate('payments.payment_date', $date);
+                            ->whereDate('payments.payment_date', $date);
                     })
                     ->groupBy('orders.currency')
                     ->pluck('total', 'currency')
                     ->map(fn ($v) => (float) $v);
 
                 return [
-                    'day'      => $day,
-                    'date'     => $date->format('Y-m-d'),
-                    'revenue'  => $revenue,
+                    'day' => $day,
+                    'date' => $date->format('Y-m-d'),
+                    'revenue' => $revenue,
                     'payments' => $payments,
                 ];
             });

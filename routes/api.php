@@ -124,6 +124,7 @@ Route::prefix('v1')->group(function () {
 
         // DASHBOARD
         Route::prefix('dashboard')->group(function () {
+            Route::get('/', [DashboardController::class, 'index']);
             Route::get('stats', [DashboardController::class, 'stats']);
             Route::get('recent-orders', [DashboardController::class, 'recentOrders']);
             Route::get('pending-payments', [DashboardController::class, 'pendingPayments']);
