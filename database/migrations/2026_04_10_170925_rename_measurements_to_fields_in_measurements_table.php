@@ -11,15 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('measurements', function (Blueprint $table) {
-            $table->renameColumn('measurements', 'fields');
-        });
+        if (Schema::hasColumn('measurements', 'measurements')) {
+            Schema::table('measurements', function (Blueprint $table) {
+                $table->renameColumn('measurements', 'fields');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('measurements', function (Blueprint $table) {
-            $table->renameColumn('fields', 'measurements');
-        });
+        if (Schema::hasColumn('measurements', 'fields')) {
+            Schema::table('measurements', function (Blueprint $table) {
+                $table->renameColumn('fields', 'measurements');
+            });
+        }
     }
 };
