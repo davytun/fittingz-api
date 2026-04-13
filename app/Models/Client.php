@@ -69,4 +69,9 @@ class Client extends Model
             ->orderBy('measurement_date', 'desc')
             ->limit(2);
     }
+
+    public function styleImages(): HasMany
+    {
+        return $this->hasMany(StyleImage::class, 'client_id');
+    }
 }

@@ -1,13 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AdminStyleController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\ClientController;
 use App\Http\Controllers\Api\V1\ClientMeasurementController;
 use App\Http\Controllers\Api\V1\ClientOrderController;
 use App\Http\Controllers\Api\V1\ClientOrderStyleController;
 use App\Http\Controllers\Api\V1\ClientProfileController;
+use App\Http\Controllers\Api\V1\ClientStyleController;
 use App\Http\Controllers\Api\V1\OrderPaymentController;
-use App\Http\Controllers\Api\V1\StyleController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\CronController;
@@ -104,12 +105,22 @@ Route::prefix('v1')->group(function () {
                 });
             });
 
-        // STYLES
-        Route::post('styles', [StyleController::class, 'store']);
-        Route::get('styles', [StyleController::class, 'index']);
-        Route::get('styles/{style}', [StyleController::class, 'show']);
-        Route::patch('styles/{style}', [StyleController::class, 'update']);
-        Route::delete('styles/{style}', [StyleController::class, 'destroy']);
+        // STYLE IMAGES (client-scoped)
+        Route::prefix('clients/{clientId}/styles')->name('clients.styles.')->group(function () {
+            Route::post('upload', [ClientStyleController::class, 'upload'])->name('upload');
+            Route::get('/', [ClientStyleController::class, 'index'])->name('index');
+            Route::get('{imageId}', [ClientStyleController::class, 'show'])->name('show');
+            Route::patch('{imageId}', [ClientStyleController::class, 'update'])->name('update');
+            Route::delete('{imageId}', [ClientStyleController::class, 'destroy'])->name('destroy');
+        });
+
+        // ADMIN STYLE IMAGES
+        Route::prefix('admin/styles')->group(function () {
+            Route::post('upload', [AdminStyleController::class, 'upload']);
+            Route::get('/', [AdminStyleController::class, 'index']);
+            Route::get('count', [AdminStyleController::class, 'count']);
+            Route::post('delete-multiple', [AdminStyleController::class, 'deleteMultiple']);
+        });
 
         // DASHBOARD
         Route::prefix('dashboard')->group(function () {

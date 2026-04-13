@@ -117,8 +117,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Payment::class);
     }
 
-    public function styles(): HasMany
+    public function styleImages(): HasMany
     {
-        return $this->hasMany(Style::class);
+        return $this->hasMany(StyleImage::class, 'admin_id');
     }
 }
