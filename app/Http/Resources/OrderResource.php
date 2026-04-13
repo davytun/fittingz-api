@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\PaymentResource;
-use App\Http\Resources\StyleResource;
+use App\Http\Resources\StyleImageResource;
 
 class OrderResource extends JsonResource
 {
@@ -40,7 +40,7 @@ class OrderResource extends JsonResource
                 fn () => $this->whenLoaded('payments', fn () => $this->payments->count())
             ),
             'payments'          => PaymentResource::collection($this->whenLoaded('payments')),
-            'styles'            => StyleResource::collection($this->whenLoaded('styles')),
+            'styles'            => StyleImageResource::collection($this->whenLoaded('styles')),
             'status'            => $this->status->value,
             'due_date'          => $this->due_date?->format('Y-m-d'),
             'notes'             => $this->notes,
