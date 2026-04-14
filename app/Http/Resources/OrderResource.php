@@ -12,7 +12,6 @@ class OrderResource extends JsonResource
         return [
             'id' => $this->id,
             'order_number' => $this->order_number,
-            'orderNumber' => $this->order_number,
             'client' => $this->whenLoaded('client', fn () => [
                 'id' => $this->client->id,
                 'name' => $this->client->name,
@@ -24,42 +23,27 @@ class OrderResource extends JsonResource
             ] : null),
             'details' => $this->details,
             'style_description' => $this->style_description,
-            'styleDescription' => $this->style_description,
             'total_amount' => (float) $this->total_amount,
-            'totalAmount' => (float) $this->total_amount,
             'currency' => $this->currency->value,
             'total_paid' => array_key_exists('payments_sum_amount', $this->resource->getAttributes())
-                                    ? (float) ($this->payments_sum_amount ?? 0)
-                                    : $this->total_paid,
-            'totalPaid' => array_key_exists('payments_sum_amount', $this->resource->getAttributes())
                                     ? (float) ($this->payments_sum_amount ?? 0)
                                     : $this->total_paid,
             'balance' => array_key_exists('payments_sum_amount', $this->resource->getAttributes())
                                     ? (float) ($this->total_amount - ($this->payments_sum_amount ?? 0))
                                     : $this->balance,
             'payment_status' => $this->payment_status,
-            'paymentStatus' => $this->payment_status,
             'payments_count' => $this->when(
                 isset($this->payments_count),
                 $this->payments_count,
                 fn () => $this->whenLoaded('payments', fn () => $this->payments->count())
             ),
-            'paymentsCount' => $this->when(
-                isset($this->payments_count),
-                $this->payments_count,
-                fn () => $this->whenLoaded('payments', fn () => $this->payments->count())
-            ),
             'payments' => PaymentResource::collection($this->whenLoaded('payments')),
-            'styleImages' => StyleImageResource::collection($this->whenLoaded('styleImages')),
             'styles' => StyleImageResource::collection($this->whenLoaded('styleImages')),
             'status' => $this->status->value,
             'due_date' => $this->due_date?->format('Y-m-d'),
-            'dueDate' => $this->due_date?->format('Y-m-d'),
             'notes' => $this->notes,
             'created_at' => $this->created_at,
-            'createdAt' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'updatedAt' => $this->updated_at,
         ];
     }
 }

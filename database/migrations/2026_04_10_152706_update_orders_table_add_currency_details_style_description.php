@@ -17,7 +17,7 @@ return new class extends Migration
 
         // Expand the enum to include the legacy 'pending' value alongside the new
         // 'pending_payment' value, so existing rows remain valid during migration.
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement(
                 "ALTER TABLE orders MODIFY COLUMN status
                 ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
@@ -31,8 +31,7 @@ return new class extends Migration
         });
 
         // Contract the enum to its final shape, removing the legacy 'pending' value.
-        // MODIFY COLUMN preserves all existing indexes on the column — no re-creation needed.
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement(
                 "ALTER TABLE orders MODIFY COLUMN status
                 ENUM('pending_payment','in_progress','completed','delivered','cancelled')
@@ -48,7 +47,7 @@ return new class extends Migration
         });
 
         // Expand enum so both 'pending' and 'pending_payment' are valid before the rollback.
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement(
                 "ALTER TABLE orders MODIFY COLUMN status
                 ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
@@ -62,7 +61,7 @@ return new class extends Migration
         });
 
         // Contract the enum back to the original shape, removing 'pending_payment'.
-        if (DB::getDriverName() !== 'sqlite') {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement(
                 "ALTER TABLE orders MODIFY COLUMN status
                 ENUM('pending','in_progress','completed','delivered','cancelled')

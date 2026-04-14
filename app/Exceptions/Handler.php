@@ -69,11 +69,11 @@ class Handler extends ExceptionHandler
             return ApiResponse::error('Unauthenticated. Please login to continue.', null, 401);
         }
 
-        try {
+        if (\Illuminate\Support\Facades\Route::has('login')) {
             return redirect()->guest(route('login'));
-        } catch (RouteNotFoundException $e) {
-            return ApiResponse::error('Unauthenticated. Please login to continue.', null, 401);
         }
+
+        return ApiResponse::error('Unauthenticated. Please login to continue.', null, 401);
     }
 
     /**
