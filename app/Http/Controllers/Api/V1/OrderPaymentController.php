@@ -70,7 +70,7 @@ class OrderPaymentController extends Controller
 
         return ApiResponse::success(
             'Payment recorded successfully',
-            new PaymentResource($payment),
+            new PaymentResource($payment->load('order')),
             201
         );
     }

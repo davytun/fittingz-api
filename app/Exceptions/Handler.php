@@ -65,9 +65,15 @@ class Handler extends ExceptionHandler
      */
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        return $this->isApiRequest($request)
-            ? ApiResponse::error('Unauthenticated. Please login to continue.', null, 401)
-            : redirect()->guest(route('login'));
+        if ($this->isApiRequest($request)) {
+            return ApiResponse::error('Unauthenticated. Please login to continue.', null, 401);
+        }
+
+        if (\Illuminate\Support\Facades\Route::has('login')) {
+            return redirect()->guest(route('login'));
+        }
+
+        return ApiResponse::error('Unauthenticated. Please login to continue.', null, 401);
     }
 
     /**

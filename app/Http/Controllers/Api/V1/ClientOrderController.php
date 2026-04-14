@@ -104,7 +104,7 @@ class ClientOrderController extends Controller
             return $order;
         });
 
-        $order->loadCount('payments')->load(['measurement']);
+        $order->loadCount('payments')->load(['measurement', 'styleImages']);
 
         return ApiResponse::success(
             'Order created successfully',
@@ -138,7 +138,7 @@ class ClientOrderController extends Controller
         $this->authorize('update', $order);
 
         $order->update($request->validated());
-        $order->loadCount('payments')->load(['measurement']);
+        $order->loadCount('payments')->load(['measurement', 'styleImages']);
 
         return ApiResponse::success(
             'Order updated successfully',
