@@ -87,9 +87,6 @@ Route::prefix('v1')->group(function () {
                         Route::get('/', [ClientOrderController::class, 'show'])->name('show');
                         Route::patch('/', [ClientOrderController::class, 'update'])->name('update');
                         Route::delete('/', [ClientOrderController::class, 'destroy'])->name('destroy');
-                        Route::patch('status', [ClientOrderController::class, 'updateStatus'])->name('status.update');
-                        Route::patch('measurement', [ClientOrderController::class, 'updateMeasurement'])->name('measurement.update');
-
                         Route::prefix('payments')->name('payments.')->group(function () {
                             Route::get('/', [OrderPaymentController::class, 'index'])->name('index');
                             Route::post('/', [OrderPaymentController::class, 'store'])->name('store');

@@ -30,7 +30,7 @@ class StyleImage extends Model
 
         static::creating(function ($model) {
             if (empty($model->id)) {
-                $model->id = (string) Str::cuid2();
+                $model->id = (string) Str::ulid();
             }
         });
 

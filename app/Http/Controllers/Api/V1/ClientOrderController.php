@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\StoreOrderRequest;
-use App\Http\Requests\Order\UpdateOrderMeasurementRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
-use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Client;
 use App\Models\Order;
@@ -23,10 +21,8 @@ class ClientOrderController extends Controller
     {
         $this->authorize('viewAny', [Order::class, $client]);
 
-        // Base: always include payment summary via withCount (no N+1)
         $query = $client->orders()->withCount('payments');
 
-        // Conditional eager loading via ?include=measurement,styleImages
         $allowed  = ['measurement', 'styleImages'];
         $includes = array_intersect(
             explode(',', $request->query('include', '')),
@@ -161,39 +157,5 @@ class ClientOrderController extends Controller
         $order->delete();
 
         return ApiResponse::success('Order deleted successfully');
-    }
-
-    public function updateStatus(UpdateOrderStatusRequest $request, Client $client, Order $order): JsonResponse
-    {
-        if ($order->client_id !== $client->id) {
-            abort(404);
-        }
-
-        $this->authorize('update', $order);
-
-        $order->update(['status' => $request->status]);
-        $order->loadCount('payments')->load(['measurement']);
-
-        return ApiResponse::success(
-            'Order status updated successfully',
-            new OrderResource($order)
-        );
-    }
-
-    public function updateMeasurement(UpdateOrderMeasurementRequest $request, Client $client, Order $order): JsonResponse
-    {
-        if ($order->client_id !== $client->id) {
-            abort(404);
-        }
-
-        $this->authorize('update', $order);
-
-        $order->update(['measurement_id' => $request->measurement_id]);
-        $order->loadCount('payments')->load(['measurement']);
-
-        return ApiResponse::success(
-            'Order measurement updated successfully',
-            new OrderResource($order)
-        );
     }
 }
