@@ -270,7 +270,7 @@ class DashboardController extends Controller
         $limit = max(1, min((int) $request->input('limit', 10), 50));
 
         $orders = $request->user()->orders()
-            ->with(['client', 'measurement'])
+            ->with(['client', 'measurement', 'styleImages'])
             ->withSum('payments', 'amount')
             ->latest()
             ->limit($limit)
@@ -288,7 +288,7 @@ class DashboardController extends Controller
     public function pendingPayments(Request $request): JsonResponse
     {
         $orders = $request->user()->orders()
-            ->with(['client', 'measurement'])
+            ->with(['client', 'measurement', 'styleImages'])
             ->withSum('payments', 'amount')
             ->whereRaw('total_amount > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.order_id = orders.id)')
             ->get()
@@ -312,7 +312,7 @@ class DashboardController extends Controller
         $days = (int) $request->input('days', 7); // Next 7 days by default
 
         $orders = $request->user()->orders()
-            ->with(['client', 'measurement'])
+            ->with(['client', 'measurement', 'styleImages'])
             ->withSum('payments', 'amount')
             ->whereNotNull('due_date')
             ->whereDate('due_date', '>=', now())
@@ -334,7 +334,7 @@ class DashboardController extends Controller
     public function overdueOrders(Request $request): JsonResponse
     {
         $orders = $request->user()->orders()
-            ->with(['client', 'measurement'])
+            ->with(['client', 'measurement', 'styleImages'])
             ->withSum('payments', 'amount')
             ->whereNotNull('due_date')
             ->whereDate('due_date', '<', now())
