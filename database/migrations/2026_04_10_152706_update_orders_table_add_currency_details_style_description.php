@@ -17,11 +17,13 @@ return new class extends Migration
 
         // Expand the enum to include the legacy 'pending' value alongside the new
         // 'pending_payment' value, so existing rows remain valid during migration.
-        DB::statement(
-            "ALTER TABLE orders MODIFY COLUMN status
-             ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
-             NOT NULL DEFAULT 'pending_payment'"
-        );
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement(
+                "ALTER TABLE orders MODIFY COLUMN status
+                ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
+                NOT NULL DEFAULT 'pending_payment'"
+            );
+        }
 
         // Atomically migrate any legacy 'pending' rows to 'pending_payment'.
         DB::transaction(function () {
@@ -30,11 +32,13 @@ return new class extends Migration
 
         // Contract the enum to its final shape, removing the legacy 'pending' value.
         // MODIFY COLUMN preserves all existing indexes on the column — no re-creation needed.
-        DB::statement(
-            "ALTER TABLE orders MODIFY COLUMN status
-             ENUM('pending_payment','in_progress','completed','delivered','cancelled')
-             NOT NULL DEFAULT 'pending_payment'"
-        );
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement(
+                "ALTER TABLE orders MODIFY COLUMN status
+                ENUM('pending_payment','in_progress','completed','delivered','cancelled')
+                NOT NULL DEFAULT 'pending_payment'"
+            );
+        }
     }
 
     public function down(): void
@@ -44,11 +48,13 @@ return new class extends Migration
         });
 
         // Expand enum so both 'pending' and 'pending_payment' are valid before the rollback.
-        DB::statement(
-            "ALTER TABLE orders MODIFY COLUMN status
-             ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
-             NOT NULL DEFAULT 'pending'"
-        );
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement(
+                "ALTER TABLE orders MODIFY COLUMN status
+                ENUM('pending','pending_payment','in_progress','completed','delivered','cancelled')
+                NOT NULL DEFAULT 'pending'"
+            );
+        }
 
         // Atomically restore 'pending_payment' rows back to the legacy 'pending' value.
         DB::transaction(function () {
@@ -56,10 +62,12 @@ return new class extends Migration
         });
 
         // Contract the enum back to the original shape, removing 'pending_payment'.
-        DB::statement(
-            "ALTER TABLE orders MODIFY COLUMN status
-             ENUM('pending','in_progress','completed','delivered','cancelled')
-             NOT NULL DEFAULT 'pending'"
-        );
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement(
+                "ALTER TABLE orders MODIFY COLUMN status
+                ENUM('pending','in_progress','completed','delivered','cancelled')
+                NOT NULL DEFAULT 'pending'"
+            );
+        }
     }
 };
